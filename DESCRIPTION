@@ -1,0 +1,29 @@
+Package: magp
+Title: Mapping-Based Additive Gaussian Process Models
+Version: 0.8.0
+Authors@R: c(
+    person("Tony", "Wang", email = "wangtony883@gmail.com",
+           role = c("aut", "cre", "cph")),
+    person("Qian", "Xiao", role = c("aut", "cph")),
+    person("Yaping", "Wang", role = "cph"),
+    person("Abhyuday", "Mandal", role = "cph"),
+    person("Xinwei", "Deng", role = "cph"))
+Description: Fits mapping-based additive Gaussian process models for
+    experiments in which each component has both a quantitative level and a
+    position in an ordered sequence. Two model structures are available: a
+    compact two-dimensional mapping and a full mapping with one fewer
+    dimension than the number of components. Both models support parameter
+    estimation, point prediction, and plug-in predictive uncertainty. Input
+    checks validate the sequence data and apply consistent scaling to the
+    quantitative inputs. Computationally intensive covariance and gradient
+    calculations are implemented in C++ with 'Rcpp'. The model was introduced
+    by Xiao et al. (2024) <doi:10.1080/01621459.2022.2123335>.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports: Rcpp, nloptr, stats
+LinkingTo: Rcpp
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3
+NeedsCompilation: yes
+RoxygenNote: 7.3.3

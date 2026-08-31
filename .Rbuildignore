@@ -1,0 +1,9 @@
+^build$
+^check$
+^.*\.Rproj$
+^\.Rproj\.user$
+^benchmark$
+^\.github$
+^\.gitignore$
+^CONTRIBUTING\.md$
+^CITATION\.cff$
