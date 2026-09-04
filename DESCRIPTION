@@ -28,13 +28,18 @@ Description: Fits mapping-based additive Gaussian process models for
     <doi:10.1080/01621459.2022.2123335>.
 License: MIT + file LICENSE
 URL: https://github.com/twskr/magp,
+    https://twskr.github.io/magp/,
     https://CRAN.R-project.org/package=magp
 BugReports: https://github.com/twskr/magp/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports: Rcpp, nloptr, parallel, stats
 LinkingTo: Rcpp
-Suggests: testthat (>= 3.0.0)
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 NeedsCompilation: yes
+VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0

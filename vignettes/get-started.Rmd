@@ -1,0 +1,132 @@
+---
+title: "Get started with magp"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Get started with magp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 5
+)
+```
+
+`magp` models experiments in which every component has two features: an
+amount and a position in an ordered sequence. A formulation experiment, for
+example, may vary both the amount of each ingredient and the order in which
+the ingredients are added.
+
+This article fits the compact two-dimensional model, predicts held-out
+responses, and obtains predictive uncertainty.
+
+## Input layout
+
+For `q` components, each row has `2 * q` input columns. The first `q` columns
+contain quantitative levels. The remaining columns contain a permutation of
+`1:q`, describing the component positions in that run.
+
+```{r load-data}
+library(magp)
+
+train <- read.table(
+  system.file("extdata", "example_train.txt", package = "magp"),
+  header = TRUE
+)
+test <- read.table(
+  system.file("extdata", "example_test.txt", package = "magp"),
+  header = TRUE
+)
+
+train[1:3, ]
+```
+
+The example contains four quantitative columns (`A` through `D`), four
+sequence-position columns (`a` through `d`), and a response named `y`.
+Because the response column is named `y`, the fitting function can identify it
+and infer `q` directly.
+
+## Fit the two-dimensional model
+
+```{r fit-model}
+fit <- magp2d_fit(
+  train,
+  seed = 1,
+  maxeval = 100
+)
+fit
+```
+
+For a more robust search, set `n_starts` above one. Setting `workers` above one
+runs those starts in separate local R processes.
+
+```{r multistart-example, eval=FALSE}
+fit <- magp2d_fit(
+  train,
+  seed = 1,
+  n_starts = 8,
+  workers = 4
+)
+```
+
+## Predict new runs
+
+```{r predict}
+prediction <- predict(
+  fit,
+  test,
+  se.fit = TRUE,
+  type = "response"
+)
+
+comparison <- data.frame(
+  observed = test$y,
+  predicted = prediction$fit,
+  standard_error = prediction$se.fit
+)
+head(comparison)
+magp2d_rmse(comparison$predicted, comparison$observed)
+```
+
+`type = "response"` includes the nugget variance for a future response.
+Use `type = "latent"` when uncertainty about the underlying noise-free surface
+is the target.
+
+```{r prediction-plot}
+plot(
+  comparison$observed,
+  comparison$predicted,
+  xlab = "Observed response",
+  ylab = "Predicted response",
+  pch = 19,
+  col = "#2c7fb8"
+)
+abline(0, 1, lty = 2, col = "#555555")
+```
+
+## Use the full mapping
+
+The full model has the same input and prediction interface. Only the fitting
+function changes.
+
+```{r full-model, eval=FALSE}
+fit_full <- magpfull_fit(train, seed = 1)
+predict(fit_full, test, se.fit = TRUE, type = "response")
+```
+
+The compact and full models represent sequence positions differently. It is
+often useful to compare their predictive performance for the application at
+hand rather than choosing only from model size.
+
+## Citation
+
+Run the following command for the software citation and the associated
+methodology paper.
+
+```{r citation}
+citation("magp")
+```

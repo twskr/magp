@@ -7,3 +7,5 @@
 ^\.gitignore$
 ^CONTRIBUTING\.md$
 ^CITATION\.cff$
+^_pkgdown\.yml$
+^docs$
