@@ -14,6 +14,18 @@
 #' uncertainty. The computational kernels for covariance matrices, analytical
 #' gradients, and cross-covariances are implemented in C++ with `Rcpp`.
 #'
+#' [magp_initial_design()] constructs a space-filling quantitative-sequence
+#' design before responses are collected. It combines a Latin hypercube with
+#' balanced sequence permutations and preserves both structures during their
+#' joint alignment.
+#'
+#' [magp_expected_improvement()] evaluates improvement using latent predictive
+#' uncertainty. [magp_next_point()] searches quantitative bounds and sequence
+#' permutations for the next experiment, while [magp_bayes_optimize()] runs
+#' the sequential fitting and evaluation loop from completed experiments.
+#' [magp_bayes_optimize_from_scratch()] first generates and evaluates an
+#' initial design, then continues through the same sequential loop.
+#'
 #' @useDynLib magp, .registration = TRUE
 #' @importFrom Rcpp evalCpp
 #' @keywords internal

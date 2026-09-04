@@ -16,6 +16,16 @@ print.magp2d <- function(x, ...) {
   cat("  objective:", round(x$objective, 4), "\n")
   state <- if (isTRUE(x$converged)) "converged" else "not converged"
   cat("  optimizer:", state, "(status", x$nloptr_status$status, ")\n")
+  if (!is.null(x$multistart) && x$multistart$n_starts > 1L) {
+    cat(
+      "  starts:", x$multistart$n_starts,
+      "(best", x$multistart$best_start, ")\n"
+    )
+    cat(
+      "  execution:", x$multistart$mode,
+      "with", x$multistart$workers_used, "worker(s)\n"
+    )
+  }
   invisible(x)
 }
 
@@ -38,6 +48,16 @@ print.magpfull <- function(x, ...) {
   cat("  objective:", round(x$objective, 4), "\n")
   state <- if (isTRUE(x$converged)) "converged" else "not converged"
   cat("  optimizer:", state, "(status", x$nloptr_status$status, ")\n")
+  if (!is.null(x$multistart) && x$multistart$n_starts > 1L) {
+    cat(
+      "  starts:", x$multistart$n_starts,
+      "(best", x$multistart$best_start, ")\n"
+    )
+    cat(
+      "  execution:", x$multistart$mode,
+      "with", x$multistart$workers_used, "worker(s)\n"
+    )
+  }
   invisible(x)
 }
 

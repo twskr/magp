@@ -11,13 +11,14 @@ For code changes:
 3. Run the test suite and an R package check.
 4. Open a pull request that briefly explains the change and its motivation.
 
-You can run the tests from the package directory with:
+The full test suite includes checks that start fresh R worker processes. Run it
+through an installed-package check from the package directory:
 
 ```r
-testthat::test_local()
+devtools::check()
 ```
 
-Before opening a pull request, build and check the package with:
+You can also build and check it directly:
 
 ```sh
 R CMD build .

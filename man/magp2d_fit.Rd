@@ -17,7 +17,9 @@ magp2d_fit(
   ub_theta = 1000,
   lb_delta = -1,
   ub_delta = 1,
-  seed = NULL
+  seed = NULL,
+  n_starts = 1,
+  workers = 1
 )
 }
 \arguments{
@@ -49,7 +51,14 @@ correlation parameters.}
 \item{lb_delta, ub_delta}{Lower and upper bounds for the mapping parameters.}
 
 \item{seed}{An optional nonnegative integer used to generate the initial
-parameter vector.}
+parameter vectors. The first start retains the result produced by this
+seed when \code{n_starts = 1}.}
+
+\item{n_starts}{Number of independent parameter starts. The fitted object
+contains the result with the lowest objective among the converged starts.}
+
+\item{workers}{Number of local worker processes. Values greater than one use
+a socket cluster and are capped at \code{n_starts}.}
 }
 \value{
 An object of class \code{magp2d}.
@@ -68,6 +77,12 @@ mapping parameters are estimated together with bounded optimization.
 Quantitative columns outside \verb{[0, 1]} are transformed with column-wise
 min-max scaling. Their training ranges are stored in the fitted object and
 reused for prediction. Columns already in \verb{[0, 1]} are left unchanged.
+
+When several starts are requested, each start receives a separate seed.
+Supplying \code{seed} makes the starts and the selected fit reproducible for
+both sequential and parallel execution. Start-level objective values,
+convergence codes, warnings, and errors are stored in
+\code{fit$multistart$starts}.
 }
 \examples{
 \donttest{
@@ -75,7 +90,7 @@ train <- read.table(
   system.file("extdata", "example_train.txt", package = "magp"),
   header = TRUE
 )
-fit <- magp2d_fit(train, seed = 1)
+fit <- magp2d_fit(train, seed = 1, n_starts = 2)
 fit
 }
 }

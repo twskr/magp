@@ -1,6 +1,6 @@
 Package: magp
 Title: Mapping-Based Additive Gaussian Process Models
-Version: 0.8.0
+Version: 0.12.0.9000
 Authors@R: c(
     person("Tony", "Wang", email = "wangtony883@gmail.com",
            role = c("aut", "cre", "cph")),
@@ -16,14 +16,25 @@ Description: Fits mapping-based additive Gaussian process models for
     estimation, point prediction, and plug-in predictive uncertainty. Input
     checks validate the sequence data and apply consistent scaling to the
     quantitative inputs. Computationally intensive covariance and gradient
-    calculations are implemented in C++ with 'Rcpp'. The model was introduced
-    by Xiao et al. (2024) <doi:10.1080/01621459.2022.2123335>.
+    calculations are implemented in C++ with 'Rcpp'. Initial-design functions
+    combine a space-filling Latin hypercube with balanced sequence
+    permutations and use simulated annealing to improve their joint
+    arrangement. Expected improvement can be optimized over both parts of the
+    input, and a sequential interface supports Bayesian optimization of an
+    expensive user-supplied objective. An integrated workflow can generate the
+    initial design, evaluate the objective, and continue the sequential search
+    in one call. The model was introduced by Xiao et al.
+    (2024)
+    <doi:10.1080/01621459.2022.2123335>.
 License: MIT + file LICENSE
+URL: https://github.com/twskr/magp,
+    https://CRAN.R-project.org/package=magp
+BugReports: https://github.com/twskr/magp/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-Imports: Rcpp, nloptr, stats
+Imports: Rcpp, nloptr, parallel, stats
 LinkingTo: Rcpp
 Suggests: testthat (>= 3.0.0)
 Config/testthat/edition: 3
 NeedsCompilation: yes
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.0.0

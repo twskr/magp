@@ -234,6 +234,220 @@
   value
 }
 
+.magp_start_seeds <- function(n_starts, seed) {
+  if (is.null(seed)) {
+    return(sample.int(.Machine$integer.max, n_starts))
+  }
+
+  seeds <- integer(n_starts)
+  seeds[1L] <- as.integer(seed)
+  if (n_starts > 1L) {
+    offsets <- 104729 * seq_len(n_starts - 1L)
+    seeds[-1L] <- as.integer(
+      (as.double(seed) + offsets) %% .Machine$integer.max
+    )
+  }
+  seeds
+}
+
+.magp_fit_one_start <- function(arguments, start, seed) {
+  recorded_warnings <- character()
+  result <- tryCatch(
+    withCallingHandlers(
+      do.call(.magp_fast_fit, c(arguments, list(seed = seed))),
+      warning = function(condition) {
+        recorded_warnings <<- c(
+          recorded_warnings,
+          conditionMessage(condition)
+        )
+        invokeRestart("muffleWarning")
+      }
+    ),
+    error = function(condition) condition
+  )
+
+  if (inherits(result, "error")) {
+    return(list(
+      start = start,
+      seed = seed,
+      fit = NULL,
+      warnings = recorded_warnings,
+      error = conditionMessage(result)
+    ))
+  }
+  list(
+    start = start,
+    seed = seed,
+    fit = result,
+    warnings = recorded_warnings,
+    error = NA_character_
+  )
+}
+
+.magp_parallel_start <- function(task, arguments) {
+  runner <- utils::getFromNamespace(".magp_fit_one_start", "magp")
+  runner(arguments, task$start, task$seed)
+}
+# Keep the worker closure independent of the package namespace during transfer.
+environment(.magp_parallel_start) <- baseenv()
+
+.magp_start_diagnostics <- function(results) {
+  data.frame(
+    start = vapply(results, `[[`, integer(1L), "start"),
+    seed = vapply(results, `[[`, integer(1L), "seed"),
+    objective = vapply(results, function(result) {
+      if (is.null(result$fit)) NA_real_ else result$fit$objective
+    }, numeric(1L)),
+    converged = vapply(results, function(result) {
+      !is.null(result$fit) && isTRUE(result$fit$converged)
+    }, logical(1L)),
+    status = vapply(results, function(result) {
+      if (is.null(result$fit)) {
+        NA_integer_
+      } else {
+        as.integer(result$fit$nloptr_status$status[1L])
+      }
+    }, integer(1L)),
+    warning = vapply(results, function(result) {
+      paste(unique(result$warnings), collapse = "; ")
+    }, character(1L)),
+    error = vapply(results, `[[`, character(1L), "error"),
+    stringsAsFactors = FALSE
+  )
+}
+
+.magp_multistart_fit <- function(
+    X, y, q, tau, maxeval, xtol_rel,
+    lb_sigma, ub_sigma, lb_theta, ub_theta,
+    lb_delta, ub_delta, seed, n_starts, workers,
+    mapping, call) {
+  .magp2d_validate_scalar(
+    n_starts, "n_starts", lower = 1,
+    upper = .Machine$integer.max, integer = TRUE
+  )
+  .magp2d_validate_scalar(
+    workers, "workers", lower = 1,
+    upper = .Machine$integer.max, integer = TRUE
+  )
+  .magp2d_validate_scalar(
+    seed, "seed", lower = 0, upper = .Machine$integer.max,
+    integer = TRUE, allow_null = TRUE
+  )
+  n_starts <- as.integer(n_starts)
+  requested_workers <- as.integer(workers)
+
+  arguments <- list(
+    X = X,
+    y = y,
+    q = q,
+    tau = tau,
+    maxeval = maxeval,
+    xtol_rel = xtol_rel,
+    lb_sigma = lb_sigma,
+    ub_sigma = ub_sigma,
+    lb_theta = lb_theta,
+    ub_theta = ub_theta,
+    lb_delta = lb_delta,
+    ub_delta = ub_delta,
+    mapping = mapping,
+    call = NULL
+  )
+
+  if (n_starts == 1L) {
+    fit <- do.call(.magp_fast_fit, c(arguments, list(seed = seed)))
+    fit$call <- call
+    fit$multistart <- list(
+      n_starts = 1L,
+      workers_requested = requested_workers,
+      workers_used = 1L,
+      mode = "sequential",
+      best_start = 1L,
+      starts = data.frame(
+        start = 1L,
+        seed = if (is.null(seed)) NA_integer_ else as.integer(seed),
+        objective = fit$objective,
+        converged = isTRUE(fit$converged),
+        status = as.integer(fit$nloptr_status$status[1L]),
+        warning = "",
+        error = NA_character_,
+        stringsAsFactors = FALSE
+      )
+    )
+    return(fit)
+  }
+
+  seeds <- .magp_start_seeds(n_starts, seed)
+  tasks <- Map(
+    function(start, start_seed) {
+      list(start = as.integer(start), seed = as.integer(start_seed))
+    },
+    seq_len(n_starts),
+    seeds
+  )
+  workers_used <- min(requested_workers, n_starts)
+
+  if (workers_used == 1L) {
+    results <- lapply(tasks, function(task) {
+      .magp_fit_one_start(arguments, task$start, task$seed)
+    })
+    mode <- "sequential"
+  } else {
+    cluster <- tryCatch(
+      parallel::makePSOCKcluster(workers_used),
+      error = function(condition) {
+        stop(
+          "could not start parallel workers: ",
+          conditionMessage(condition),
+          call. = FALSE
+        )
+      }
+    )
+    on.exit(parallel::stopCluster(cluster), add = TRUE)
+    library_paths <- .libPaths()
+    parallel::clusterCall(cluster, function(paths) {
+      .libPaths(paths)
+      loadNamespace("magp")
+      NULL
+    }, library_paths)
+    results <- parallel::parLapply(
+      cluster, tasks, .magp_parallel_start, arguments = arguments
+    )
+    mode <- "PSOCK"
+  }
+
+  diagnostics <- .magp_start_diagnostics(results)
+  successful <- which(is.finite(diagnostics$objective))
+  if (!length(successful)) {
+    reasons <- unique(diagnostics$error[nzchar(diagnostics$error)])
+    stop(
+      "all optimization starts failed",
+      if (length(reasons)) paste0(": ", paste(reasons, collapse = "; ")),
+      call. = FALSE
+    )
+  }
+  candidates <- successful[diagnostics$converged[successful]]
+  if (!length(candidates)) {
+    candidates <- successful
+    warning(
+      "none of the optimization starts reported convergence; ",
+      "returning the finite result with the lowest objective",
+      call. = FALSE
+    )
+  }
+  best_start <- candidates[which.min(diagnostics$objective[candidates])]
+  best <- results[[best_start]]$fit
+  best$call <- call
+  best$multistart <- list(
+    n_starts = n_starts,
+    workers_requested = requested_workers,
+    workers_used = workers_used,
+    mode = mode,
+    best_start = as.integer(best_start),
+    starts = diagnostics
+  )
+  best
+}
+
 #' Fit a MaGP model with a two-dimensional sequence map
 #'
 #' Fits an additive Gaussian process for data that combine component amounts
@@ -259,7 +473,12 @@
 #'   correlation parameters.
 #' @param lb_delta,ub_delta Lower and upper bounds for the mapping parameters.
 #' @param seed An optional nonnegative integer used to generate the initial
-#'   parameter vector.
+#'   parameter vectors. The first start retains the result produced by this
+#'   seed when `n_starts = 1`.
+#' @param n_starts Number of independent parameter starts. The fitted object
+#'   contains the result with the lowest objective among the converged starts.
+#' @param workers Number of local worker processes. Values greater than one use
+#'   a socket cluster and are capped at `n_starts`.
 #'
 #' @details The covariance is a sum of component-specific terms. Each term
 #'   combines the distance between two quantitative levels with the distance
@@ -270,6 +489,12 @@
 #'   min-max scaling. Their training ranges are stored in the fitted object and
 #'   reused for prediction. Columns already in `[0, 1]` are left unchanged.
 #'
+#'   When several starts are requested, each start receives a separate seed.
+#'   Supplying `seed` makes the starts and the selected fit reproducible for
+#'   both sequential and parallel execution. Start-level objective values,
+#'   convergence codes, warnings, and errors are stored in
+#'   `fit$multistart$starts`.
+#'
 #' @return An object of class `magp2d`.
 #' @examples
 #' \donttest{
@@ -277,7 +502,7 @@
 #'   system.file("extdata", "example_train.txt", package = "magp"),
 #'   header = TRUE
 #' )
-#' fit <- magp2d_fit(train, seed = 1)
+#' fit <- magp2d_fit(train, seed = 1, n_starts = 2)
 #' fit
 #' }
 #' @export
@@ -287,11 +512,12 @@ magp2d_fit <- function(
     lb_sigma = 10, ub_sigma = 1000,
     lb_theta = 0.5, ub_theta = 1000,
     lb_delta = -1, ub_delta = 1,
-    seed = NULL) {
-  .magp_fast_fit(
+    seed = NULL, n_starts = 1, workers = 1) {
+  .magp_multistart_fit(
     X, y, q, tau, maxeval, xtol_rel,
     lb_sigma, ub_sigma, lb_theta, ub_theta,
-    lb_delta, ub_delta, seed, "2d", match.call()
+    lb_delta, ub_delta, seed, n_starts, workers,
+    "2d", match.call()
   )
 }
 
@@ -303,7 +529,9 @@ magp2d_fit <- function(
 #' @inheritParams magp2d_fit
 #' @details The data layout, quantitative scaling, and covariance construction
 #'   are the same as in [magp2d_fit()]. The difference is the number of latent
-#'   coordinates used to represent the sequence positions.
+#'   coordinates used to represent the sequence positions. With more than one
+#'   start, the function keeps the converged result with the lowest objective
+#'   and records the outcome of every start in `fit$multistart$starts`.
 #' @return An object of class `magpfull`.
 #' @examples
 #' \donttest{
@@ -311,7 +539,7 @@ magp2d_fit <- function(
 #'   system.file("extdata", "example_train.txt", package = "magp"),
 #'   header = TRUE
 #' )
-#' fit <- magpfull_fit(train, seed = 1)
+#' fit <- magpfull_fit(train, seed = 1, n_starts = 2)
 #' fit
 #' }
 #' @export
@@ -321,11 +549,12 @@ magpfull_fit <- function(
     lb_sigma = 10, ub_sigma = 1000,
     lb_theta = 0.5, ub_theta = 1000,
     lb_delta = -1, ub_delta = 1,
-    seed = NULL) {
-  .magp_fast_fit(
+    seed = NULL, n_starts = 1, workers = 1) {
+  .magp_multistart_fit(
     X, y, q, tau, maxeval, xtol_rel,
     lb_sigma, ub_sigma, lb_theta, ub_theta,
-    lb_delta, ub_delta, seed, "full", match.call()
+    lb_delta, ub_delta, seed, n_starts, workers,
+    "full", match.call()
   )
 }
 
