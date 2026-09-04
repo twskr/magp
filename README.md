@@ -2,6 +2,7 @@
 
 [![CRAN status](https://www.r-pkg.org/badges/version/magp)](https://CRAN.R-project.org/package=magp)
 [![R-CMD-check](https://github.com/twskr/magp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/twskr/magp/actions/workflows/R-CMD-check.yaml)
+[![Documentation](https://img.shields.io/badge/docs-pkgdown-2c7fb8.svg)](https://twskr.github.io/magp/)
 
 The stable release is available from CRAN. This branch contains the
 development version, `0.12.0.9000`.
@@ -26,10 +27,19 @@ To install the current development branch from GitHub:
 
 ```r
 install.packages("remotes")
-remotes::install_github("twskr/magp@develop-v0.12")
+remotes::install_github("twskr/magp")
 ```
 
 A C++ toolchain is required when installing from source or GitHub.
+
+The complete function reference and tutorials are available on the
+[package website](https://twskr.github.io/magp/).
+
+## Citation
+
+Run `citation("magp")` for the software citation and the methodology paper.
+The stable package has the CRAN DOI
+[10.32614/CRAN.package.magp](https://doi.org/10.32614/CRAN.package.magp).
 
 ## Data format
 

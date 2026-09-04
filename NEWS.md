@@ -1,5 +1,10 @@
 # magp 0.12.0.9000
 
+- Added a pkgdown website with a getting-started guide, an optimization
+  workflow, a reproducible covariance-engine benchmark, and a curated function
+  reference.
+- Added package-level citation metadata for both the software and the
+  associated methodology paper.
 - Added `magp_bayes_optimize_from_scratch()` to connect simulated-annealing
   initial design, initial objective evaluation, and sequential MaGP Bayesian
   optimization in one call.

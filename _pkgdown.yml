@@ -1,0 +1,80 @@
+url: https://twskr.github.io/magp/
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+
+home:
+  title: magp
+  description: >
+    Mapping-based additive Gaussian process models for experiments that
+    combine quantitative levels with ordered sequences.
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+  components:
+    articles:
+      text: Articles
+      menu:
+      - text: Complete optimization workflow
+        href: articles/optimization-workflow.html
+      - text: Computational benchmark
+        href: articles/performance.html
+    github:
+      icon: fa-github
+      href: https://github.com/twskr/magp
+      aria-label: GitHub repository
+
+reference:
+- title: Fit and predict
+  desc: Fit either mapping model and predict outcomes with uncertainty.
+  contents:
+  - magp2d_fit
+  - magpfull_fit
+  - predict.magp
+  - magp2d_rmse
+- title: Construct an initial design
+  desc: Build and assess quantitative-sequence starting designs.
+  contents:
+  - magp_initial_design
+  - magp_sequence_design
+  - magp_quantitative_design
+  - magp_sequence_criterion
+  - magp_quantitative_criterion
+  - magp_joint_criterion
+- title: Choose later experiments
+  desc: Use expected improvement for sequential optimization.
+  contents:
+  - magp_expected_improvement
+  - magp_next_point
+  - magp_bayes_optimize
+  - magp_bayes_optimize_from_scratch
+- title: Object summaries
+  desc: Print concise summaries of fitted models, designs, and searches.
+  contents:
+  - print.magp2d
+  - print.magpfull
+  - print.magp_initial_design
+  - print.magp_quantitative_design
+  - print.magp_sequence_design
+  - print.magp_next_point
+  - print.magp_bayes_opt
+
+articles:
+- title: Get started
+  navbar: Get started
+  contents:
+  - get-started
+- title: Design and optimization
+  contents:
+  - optimization-workflow
+- title: Validation and performance
+  contents:
+  - performance
+
+footer:
+  structure:
+    left: developed_by
+    right: built_with

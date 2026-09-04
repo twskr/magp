@@ -127,6 +127,10 @@ test_that("the lowest converged objective is selected", {
 
 test_that("parallel and sequential starts agree for both models", {
   skip_on_cran()
+  skip_if_not(
+    file.exists(file.path(find.package("magp"), "Meta", "package.rds")),
+    "parallel PSOCK test requires an installed package"
+  )
   data <- multistart_example()
   sequential <- suppressWarnings(magp2d_fit(
     data$X, data$y,

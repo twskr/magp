@@ -9,3 +9,4 @@ src/*.dll
 src/*.dylib
 build/
 check/
+docs/

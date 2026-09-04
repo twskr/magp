@@ -1,0 +1,62 @@
+---
+title: "Computational benchmark"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Computational benchmark}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+The covariance calculation is the most frequently repeated low-level
+operation during fitting and prediction. `magp` implements it in C++ through
+`Rcpp`. This page records a direct comparison with an independent R
+implementation of the same calculation.
+
+## Reproduce the benchmark
+
+Clone the repository, install the development package, and run:
+
+```{sh, eval=FALSE}
+Rscript inst/benchmarks/benchmark-covariance-engine.R benchmark-output
+```
+
+The script creates fixed synthetic inputs, times both implementations, checks
+their largest absolute numerical difference, and records `sessionInfo()`.
+The complete script is included in the repository so that the comparison can
+be repeated on other computers.
+
+## Recorded result
+
+```{r benchmark-table}
+results <- read.csv(system.file(
+  "benchmarks",
+  "covariance-engine-results.csv",
+  package = "magp"
+))
+knitr::kable(
+  results,
+  digits = 4,
+  caption = "Median elapsed time per covariance calculation."
+)
+```
+
+`speedup` is the R time divided by the Rcpp time. Timing depends on the
+processor, R version, compiler, and system load, so the recorded values should
+not be treated as a universal performance guarantee. The
+`max_abs_difference` column is the direct numerical agreement check for the
+same inputs and parameters.
+
+The benchmark session details are stored beside the result file:
+
+```{r session-file}
+session_file <- system.file(
+  "benchmarks",
+  "covariance-engine-session-info.txt",
+  package = "magp"
+)
+cat(paste(readLines(session_file), collapse = "\n"))
+```

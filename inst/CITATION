@@ -1,0 +1,36 @@
+citHeader("To cite magp, please cite the software:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "magp: Mapping-Based Additive Gaussian Process Models",
+  author = c(
+    person("Tony", "Wang"),
+    person("Qian", "Xiao")
+  ),
+  year = "2026",
+  note = sprintf("R package version %s", meta$Version),
+  doi = "10.32614/CRAN.package.magp",
+  url = "https://CRAN.R-project.org/package=magp"
+)
+
+citHeader("The statistical methodology is described in:")
+
+bibentry(
+  bibtype = "Article",
+  title = paste(
+    "Modeling and Active Learning for Experiments with",
+    "Quantitative-Sequence Factors"
+  ),
+  author = c(
+    person("Qian", "Xiao"),
+    person("Yaping", "Wang"),
+    person("Abhyuday", "Mandal"),
+    person("Xinwei", "Deng")
+  ),
+  journal = "Journal of the American Statistical Association",
+  year = "2024",
+  volume = "119",
+  number = "545",
+  pages = "407--421",
+  doi = "10.1080/01621459.2022.2123335"
+)
