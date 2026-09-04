@@ -20,6 +20,27 @@ during fitting, and the same transformation is used for new data.
 support \code{\link[stats:predict]{stats::predict()}} for point predictions and plug-in predictive
 uncertainty. The computational kernels for covariance matrices, analytical
 gradients, and cross-covariances are implemented in C++ with \code{Rcpp}.
+
+\code{\link[=magp_initial_design]{magp_initial_design()}} constructs a space-filling quantitative-sequence
+design before responses are collected. It combines a Latin hypercube with
+balanced sequence permutations and preserves both structures during their
+joint alignment.
+
+\code{\link[=magp_expected_improvement]{magp_expected_improvement()}} evaluates improvement using latent predictive
+uncertainty. \code{\link[=magp_next_point]{magp_next_point()}} searches quantitative bounds and sequence
+permutations for the next experiment, while \code{\link[=magp_bayes_optimize]{magp_bayes_optimize()}} runs
+the sequential fitting and evaluation loop from completed experiments.
+\code{\link[=magp_bayes_optimize_from_scratch]{magp_bayes_optimize_from_scratch()}} first generates and evaluates an
+initial design, then continues through the same sequential loop.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/twskr/magp}
+  \item \url{https://CRAN.R-project.org/package=magp}
+  \item Report bugs at \url{https://github.com/twskr/magp/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Tony Wang \email{wangtony883@gmail.com} [copyright holder]
