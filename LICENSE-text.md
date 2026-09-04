@@ -1,0 +1,4 @@
+# License
+
+    YEAR: 2026
+    COPYRIGHT HOLDER: Tony Wang, Qian Xiao, Yaping Wang, Abhyuday Mandal, and Xinwei Deng
