@@ -43,6 +43,14 @@ test_that("from-scratch optimization connects every workflow stage", {
   )
   expect_s3_class(result, "magp_bayes_opt")
   expect_s3_class(result$initial_design, "magp_initial_design")
+  expect_setequal(names(result), c(
+    "call", "best_point", "best_value", "best_index", "history", "model",
+    "X", "y", "acquisitions", "mapping", "direction",
+    "iterations_requested", "iterations_completed", "stop_reason", "xi",
+    "stop_ei", "stop_patience", "fit_control", "acquisition_control",
+    "initial_design", "initial_response", "initial_evaluations",
+    "design_control", "started_from_initial_design"
+  ))
   expect_true(result$started_from_initial_design)
   expect_equal(result$initial_evaluations, 6L)
   expect_equal(result$initial_response, expected_initial, tolerance = 1e-14)
