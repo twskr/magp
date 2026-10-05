@@ -2,10 +2,9 @@
 
 [![CRAN status](https://www.r-pkg.org/badges/version/magp)](https://CRAN.R-project.org/package=magp)
 [![R-CMD-check](https://github.com/twskr/magp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/twskr/magp/actions/workflows/R-CMD-check.yaml)
-[![Documentation](https://img.shields.io/badge/docs-pkgdown-2c7fb8.svg)](https://twskr.github.io/magp/)
 
-The stable release is available from CRAN. This branch contains the
-development version, `0.12.0.9000`.
+The current release is available from CRAN. This source tree contains version
+`0.12.0`.
 
 `magp` is designed for experiments in which every component has both an amount
 and a position in a sequence. It fits an additive Gaussian process that uses
@@ -23,7 +22,7 @@ install.packages("magp")
 library(magp)
 ```
 
-To install the current development branch from GitHub:
+To install the source mirrored on GitHub:
 
 ```r
 install.packages("remotes")
@@ -32,7 +31,9 @@ remotes::install_github("twskr/magp")
 
 A C++ toolchain is required when installing from source or GitHub.
 
-The complete function reference and tutorials are available on the
+The installed package includes the function reference and tutorials. In R,
+run `help(package = "magp")` or `browseVignettes("magp")`.
+The same documentation is available on the
 [package website](https://twskr.github.io/magp/).
 
 ## Citation
@@ -113,7 +114,7 @@ fit <- magp2d_fit(
   train,
   seed = 1,
   n_starts = 8,
-  workers = 4
+  workers = 2
 )
 fit$multistart$starts
 ```
@@ -123,7 +124,8 @@ none of the starts converges, the lowest finite result is returned with a
 warning. The start table records every objective value, convergence code,
 warning, and error. A supplied seed gives the same set of starts in sequential
 and parallel runs. `workers = 1` uses ordinary sequential execution; larger
-values use a local socket cluster and are capped at `n_starts`.
+values use a local socket cluster and are capped at two or `n_starts`,
+whichever is lower.
 
 ## Initial designs
 
@@ -137,6 +139,7 @@ individual quantity and sequence designs remain valid.
 initial_design <- magp_initial_design(
   n = 16,
   q = 4,
+  sequence_method = "sfta",
   seed = 1
 )
 initial_design$design
@@ -146,6 +149,41 @@ initial_design$criteria
 The first four columns in this example contain quantitative levels and the
 last four contain sequence positions. The returned matrix can be passed
 directly to either fitting function after a response vector has been obtained.
+
+Use `sequence_method` to choose how the sequence rows are generated:
+
+- `"random"` samples valid permutations without optimizing them.
+- `"sfta"` uses space-filling threshold accepting to improve the complete
+  sequence design.
+- `"sann"` uses simulated annealing and remains the default for backward
+  compatibility.
+
+SFTA first generates several space-filling candidate designs. It then improves
+the best candidate by swapping two positions within one row at a time. The
+search retains the best design it visits. Its thresholds and search history
+are available in `initial_design$sequence_search$sfta`.
+
+The sequence method does not change how the quantitative Latin hypercube is
+generated. With the same seed, all three methods begin with the same
+quantitative design before the final row-alignment step.
+
+```r
+random_design <- magp_initial_design(
+  n = 16,
+  q = 4,
+  sequence_method = "random",
+  seed = 1
+)
+
+sfta_design <- magp_initial_design(
+  n = 16,
+  q = 4,
+  sequence_method = "sfta",
+  seed = 1
+)
+
+rbind(random = random_design$criteria, sfta = sfta_design$criteria)
+```
 
 The component criteria can also be used separately:
 
@@ -161,11 +199,22 @@ magp_joint_criterion(
 All design criteria are minimized. A supplied seed makes each search
 reproducible without changing the caller's random-number state.
 
-## Expected improvement and the next experiment
+## Bayesian optimization
 
-Expected improvement uses the latent predictive distribution from either
-mapping model. Set `direction` explicitly so the observed optimum is handled
-correctly.
+Choose the function that matches the information you already have:
+
+- Use `magp_expected_improvement()` to score a set of candidate inputs.
+- Use `magp_next_point()` to select one new experiment from a fitted model.
+- Use `magp_bayes_optimize()` when completed experiments and responses are
+  available.
+- Use `magp_bayes_optimize_from_scratch()` when no experiments have been run.
+
+### Score candidates or select one new experiment
+
+Expected improvement scores each candidate using its predicted response and
+uncertainty. Larger scores are preferred. Set `direction = "minimize"` when a
+smaller response is better, or `direction = "maximize"` when a larger response
+is better.
 
 ```r
 ei <- magp_expected_improvement(
@@ -185,18 +234,20 @@ next_run$point
 next_run$expected_improvement
 ```
 
-For four components, the default search checks all 24 sequence permutations.
-When the complete set is larger than `max_sequences`, the function searches a
-reproducible sample instead. A specific set of permutations can be supplied
-through `sequences`. Quantitative inputs are optimized within the model's
-stored prediction ranges, and completed experiments are excluded by default.
+`magp_expected_improvement()` returns one score per candidate row.
+`magp_next_point()` returns the selected row, its expected improvement,
+predicted mean, predicted standard error, and search diagnostics.
 
-## Sequential Bayesian optimization
+For four components, `magp_next_point()` checks all 24 sequence permutations
+by default. If the complete set is larger than `max_sequences`, it searches a
+sample instead. Supply `seed` to reproduce the same sample. Completed
+experiments are excluded by default.
 
-`magp_bayes_optimize()` fits a MaGP surrogate, finds the point with the largest
-expected improvement, evaluates the objective, and refits the model. The
-objective receives one named argument for every input column and may return a
-numeric value or a list containing `Score` or `Value`.
+### Continue from completed experiments
+
+The objective function receives one named argument for every input column. It
+must return one number, or a list containing one number named `Score` or
+`Value`.
 
 ```r
 objective <- function(A, B, C, D, a, b, c, d) {
@@ -213,30 +264,33 @@ initial_y <- apply(initial_x, 1L, function(row) {
 })
 
 result <- magp_bayes_optimize(
-  objective,
-  initial_x,
-  initial_y,
+  FUN = objective,
+  X = initial_x,
+  y = initial_y,
   direction = "maximize",
   n_iter = 3,
   seed = 3,
   fit_control = list(n_starts = 4, workers = 2),
-  acquisition_control = list(n_starts = 5, workers = 2)
+  acquisition_control = list(n_starts = 5, workers = 2),
+  verbose = FALSE
 )
 result$best_point
 result$best_value
 result$history
 ```
 
-`stop_ei` is an absolute expected-improvement threshold. The loop stops after
-`stop_patience` consecutive evaluated points at or below that value. The
-returned model always includes every evaluation recorded in `history`.
+Each iteration fits the model, selects a new point, evaluates `objective`, and
+adds the result to the data. The main outputs are `best_point`, `best_value`,
+`history`, the final `model`, and the complete `X` and `y`. Set `n_iter` to the
+maximum number of new evaluations. The loop may stop earlier when expected
+improvement remains at or below `stop_ei` for `stop_patience` consecutive
+iterations.
 
-## Starting from a generated design
+### Start without initial data
 
-When no experiments have been run yet,
-`magp_bayes_optimize_from_scratch()` connects the complete workflow. It builds
-the quantitative-sequence initial design, evaluates the objective at those
-runs, and then continues with sequential expected-improvement search.
+`magp_bayes_optimize_from_scratch()` first creates an initial design and
+evaluates the objective at every row. It then starts the same sequential search
+used by `magp_bayes_optimize()`.
 
 ```r
 objective <- function(quantity_1, quantity_2, quantity_3,
@@ -248,7 +302,7 @@ objective <- function(quantity_1, quantity_2, quantity_3,
 }
 
 result <- magp_bayes_optimize_from_scratch(
-  objective,
+  FUN = objective,
   n_initial = 8,
   q = 3,
   direction = "maximize",
@@ -260,7 +314,8 @@ result <- magp_bayes_optimize_from_scratch(
     alignment_maxit = 500
   ),
   fit_control = list(n_starts = 4, workers = 2),
-  acquisition_control = list(n_starts = 5, workers = 2)
+  acquisition_control = list(n_starts = 5, workers = 2),
+  verbose = FALSE
 )
 result$initial_design$design
 result$initial_response
@@ -268,6 +323,7 @@ result$best_point
 result$history
 ```
 
-Use `design_control` to change the simulated-annealing settings for the initial
-design. Use `magp_bayes_optimize()` when initial experiments and responses are
-already available.
+The extra outputs `initial_design` and `initial_response` record the generated
+starting runs. Use `design_control`, `fit_control`, and `acquisition_control`
+only when the default search settings need to be changed. See the function help
+pages for the available settings and returned components.

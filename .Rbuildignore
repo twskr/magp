@@ -1,4 +1,3 @@
-^build$
 ^check$
 ^.*\.Rproj$
 ^\.Rproj\.user$
@@ -9,3 +8,4 @@
 ^CITATION\.cff$
 ^_pkgdown\.yml$
 ^docs$
+^magp$

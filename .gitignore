@@ -10,3 +10,7 @@ src/*.dylib
 build/
 check/
 docs/
+.DS_Store
+/magp/
+/*.tar.gz
+/*.zip

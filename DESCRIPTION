@@ -1,6 +1,6 @@
 Package: magp
 Title: Mapping-Based Additive Gaussian Process Models
-Version: 0.12.0.9000
+Version: 0.12.0
 Authors@R: c(
     person("Tony", "Wang", email = "wangtony883@gmail.com",
            role = c("aut", "cre", "cph")),
@@ -17,18 +17,18 @@ Description: Fits mapping-based additive Gaussian process models for
     checks validate the sequence data and apply consistent scaling to the
     quantitative inputs. Computationally intensive covariance and gradient
     calculations are implemented in C++ with 'Rcpp'. Initial-design functions
-    combine a space-filling Latin hypercube with balanced sequence
-    permutations and use simulated annealing to improve their joint
-    arrangement. Expected improvement can be optimized over both parts of the
-    input, and a sequential interface supports Bayesian optimization of an
-    expensive user-supplied objective. An integrated workflow can generate the
-    initial design, evaluate the objective, and continue the sequential search
-    in one call. The model was introduced by Xiao et al.
+    combine a space-filling Latin hypercube with sequence permutations. The
+    sequence portion can be generated randomly or optimized with simulated
+    annealing or space-filling threshold accepting. Expected improvement can
+    be optimized over both parts of the input, and a sequential interface
+    supports Bayesian optimization of an expensive user-supplied objective.
+    An integrated workflow can generate the initial design, evaluate the
+    objective, and continue the sequential search in one call. The model was
+    introduced by Xiao et al.
     (2024)
     <doi:10.1080/01621459.2022.2123335>.
 License: MIT + file LICENSE
 URL: https://github.com/twskr/magp,
-    https://twskr.github.io/magp/,
     https://CRAN.R-project.org/package=magp
 BugReports: https://github.com/twskr/magp/issues
 Encoding: UTF-8
