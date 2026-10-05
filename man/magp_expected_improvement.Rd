@@ -2,7 +2,7 @@
 % Please edit documentation in R/acquisition.R
 \name{magp_expected_improvement}
 \alias{magp_expected_improvement}
-\title{Calculate expected improvement for a fitted MaGP model}
+\title{Score candidate experiments with expected improvement}
 \usage{
 magp_expected_improvement(
   object,
@@ -18,30 +18,30 @@ magp_expected_improvement(
 \item{newdata}{A numeric matrix or data frame accepted by the model's
 \code{\link[stats:predict]{stats::predict()}} method.}
 
-\item{direction}{Whether the objective is being minimized or maximized.}
+\item{direction}{Use \code{"minimize"} when smaller responses are better and
+\code{"maximize"} when larger responses are better.}
 
-\item{best}{Optional finite reference value. When omitted, the smallest or
-largest observed response is used according to \code{direction}.}
+\item{best}{Optional response that a new point should improve upon. When it
+is omitted, the function uses the best observed response in \code{object}.}
 
-\item{xi}{A nonnegative exploration offset. Larger values require a greater
-improvement over \code{best} before favoring exploitation.}
+\item{xi}{Nonnegative improvement offset. The default is \code{0}. Larger values
+require a candidate to exceed \code{best} by more.}
 }
 \value{
-A nonnegative numeric vector with one value per row of \code{newdata}.
+A nonnegative numeric vector with one expected-improvement value per
+row of \code{newdata}.
 }
 \description{
-Evaluates the expected improvement acquisition function at one or more
-quantitative-sequence inputs. Predictive uncertainty is taken from the
-latent, noise-free surface.
+Calculates expected improvement for one or more candidate rows. Higher
+values indicate candidates that offer a better combination of predicted
+improvement and uncertainty.
 }
 \details{
-Let \code{m} and \code{s} denote the latent predictive mean and standard
-error. For maximization, the improvement is \code{m - best - xi}; for
-minimization, it is \code{best - m - xi}. If \code{s} is positive, expected
-improvement is \code{improvement * pnorm(z) + s * dnorm(z)}, where
-\code{z = improvement / s}. Values with predictive variance below \code{1e-8}, and
-inputs already present in the training data, receive expected improvement
-zero.
+Expected improvement uses the model's latent predictive mean and
+standard error. A candidate can receive a high value because its predicted
+response is good, its uncertainty is large, or both. Rows already present
+in the training data receive a value of zero. Predictions with variance
+below \code{1e-8} also receive zero.
 }
 \examples{
 \donttest{
