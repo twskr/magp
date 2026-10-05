@@ -69,12 +69,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// magp_sfta_search_cpp
+Rcpp::List magp_sfta_search_cpp(Rcpp::IntegerMatrix orders, double pair_weight, double space_weight, int p, int maxit, int ncalibrate, int nrounds);
+RcppExport SEXP _magp_magp_sfta_search_cpp(SEXP ordersSEXP, SEXP pair_weightSEXP, SEXP space_weightSEXP, SEXP pSEXP, SEXP maxitSEXP, SEXP ncalibrateSEXP, SEXP nroundsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type orders(ordersSEXP);
+    Rcpp::traits::input_parameter< double >::type pair_weight(pair_weightSEXP);
+    Rcpp::traits::input_parameter< double >::type space_weight(space_weightSEXP);
+    Rcpp::traits::input_parameter< int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< int >::type ncalibrate(ncalibrateSEXP);
+    Rcpp::traits::input_parameter< int >::type nrounds(nroundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(magp_sfta_search_cpp(orders, pair_weight, space_weight, p, maxit, ncalibrate, nrounds));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_magp_cpp_magp_mapping_matrix", (DL_FUNC) &_magp_cpp_magp_mapping_matrix, 3},
     {"_magp_cpp_magp_covariance", (DL_FUNC) &_magp_cpp_magp_covariance, 5},
     {"_magp_cpp_magp_gradient", (DL_FUNC) &_magp_cpp_magp_gradient, 6},
     {"_magp_cpp_magp_cross_covariance", (DL_FUNC) &_magp_cpp_magp_cross_covariance, 5},
+    {"_magp_magp_sfta_search_cpp", (DL_FUNC) &_magp_magp_sfta_search_cpp, 7},
     {NULL, NULL, 0}
 };
 
