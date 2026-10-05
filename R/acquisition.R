@@ -44,30 +44,30 @@
   pmax(as.numeric(result), 0)
 }
 
-#' Calculate expected improvement for a fitted MaGP model
+#' Score candidate experiments with expected improvement
 #'
-#' Evaluates the expected improvement acquisition function at one or more
-#' quantitative-sequence inputs. Predictive uncertainty is taken from the
-#' latent, noise-free surface.
+#' Calculates expected improvement for one or more candidate rows. Higher
+#' values indicate candidates that offer a better combination of predicted
+#' improvement and uncertainty.
 #'
 #' @param object A fitted `magp2d` or `magpfull` model.
 #' @param newdata A numeric matrix or data frame accepted by the model's
 #'   [stats::predict()] method.
-#' @param direction Whether the objective is being minimized or maximized.
-#' @param best Optional finite reference value. When omitted, the smallest or
-#'   largest observed response is used according to `direction`.
-#' @param xi A nonnegative exploration offset. Larger values require a greater
-#'   improvement over `best` before favoring exploitation.
+#' @param direction Use `"minimize"` when smaller responses are better and
+#'   `"maximize"` when larger responses are better.
+#' @param best Optional response that a new point should improve upon. When it
+#'   is omitted, the function uses the best observed response in `object`.
+#' @param xi Nonnegative improvement offset. The default is `0`. Larger values
+#'   require a candidate to exceed `best` by more.
 #'
-#' @details Let `m` and `s` denote the latent predictive mean and standard
-#'   error. For maximization, the improvement is `m - best - xi`; for
-#'   minimization, it is `best - m - xi`. If `s` is positive, expected
-#'   improvement is `improvement * pnorm(z) + s * dnorm(z)`, where
-#'   `z = improvement / s`. Values with predictive variance below `1e-8`, and
-#'   inputs already present in the training data, receive expected improvement
-#'   zero.
+#' @details Expected improvement uses the model's latent predictive mean and
+#'   standard error. A candidate can receive a high value because its predicted
+#'   response is good, its uncertainty is large, or both. Rows already present
+#'   in the training data receive a value of zero. Predictions with variance
+#'   below `1e-8` also receive zero.
 #'
-#' @return A nonnegative numeric vector with one value per row of `newdata`.
+#' @return A nonnegative numeric vector with one expected-improvement value per
+#'   row of `newdata`.
 #'
 #' @references
 #' Jones, D. R., Schonlau, M., and Welch, W. J. (1998).
@@ -484,43 +484,64 @@ environment(.magp_parallel_acquisition_task) <- baseenv()
   )
 }
 
-#' Find the next quantitative-sequence experiment
+#' Select the next quantitative-sequence experiment
 #'
-#' Maximizes expected improvement over quantitative inputs and sequence
-#' permutations. Each sequence is searched from several quantitative starting
-#' points, and the best result across all searches is returned.
+#' Searches the allowed quantitative values and sequence permutations, then
+#' returns the unobserved point with the largest expected improvement.
 #'
 #' @param object A fitted `magp2d` or `magpfull` model.
-#' @param direction Whether the objective is being minimized or maximized.
-#' @param xi A nonnegative exploration offset used by expected improvement.
-#' @param best Optional finite reference value. The current observed optimum is
-#'   used when omitted.
-#' @param lower,upper Optional quantitative bounds. Each may contain one value
-#'   or `q` values. Defaults are `[0, 1]` for inputs fitted on that scale and
-#'   the stored training range for inputs that were scaled during fitting.
+#' @param direction Use `"minimize"` when smaller responses are better and
+#'   `"maximize"` when larger responses are better.
+#' @param xi Nonnegative improvement offset used in expected improvement.
+#' @param best Optional response that a new point should improve upon. When it
+#'   is omitted, the function uses the best observed response in `object`.
+#' @param lower,upper Optional lower and upper bounds for the quantitative
+#'   inputs. Supply one value for all components or one value per component.
+#'   The defaults use the prediction ranges stored in the fitted model.
 #' @param sequences Optional matrix of candidate sequence permutations. When
 #'   omitted, every permutation is used if their number does not exceed
 #'   `max_sequences`; otherwise a reproducible sample is searched.
-#' @param max_sequences Maximum number of automatically generated sequence
-#'   candidates.
-#' @param n_starts Number of quantitative starting points used for each
-#'   sequence. The first is the midpoint of the bounds and the rest are random.
-#' @param workers Number of local worker processes. Values greater than one use
-#'   a portable socket cluster and are capped at the number of search tasks.
-#' @param maxit Maximum number of `L-BFGS-B` iterations for each start.
-#' @param factr,pgtol Convergence controls passed to [stats::optim()] for its
-#'   `L-BFGS-B` method.
-#' @param exclude_observed Logical; if `TRUE`, previously observed inputs are
-#'   not eligible for selection.
+#' @param max_sequences Largest number of sequence candidates generated when
+#'   `sequences` is not supplied.
+#' @param n_starts Number of quantitative starting points searched for each
+#'   sequence candidate.
+#' @param workers Number of local worker processes. Use `1` for sequential
+#'   execution. At most two processes are used.
+#' @param maxit Maximum optimization iterations for each quantitative start.
+#' @param factr,pgtol Advanced convergence settings passed to
+#'   [stats::optim()] for its `"L-BFGS-B"` method.
+#' @param exclude_observed If `TRUE`, do not return an input that is already in
+#'   the training data.
 #' @param duplicate_tolerance Nonnegative absolute tolerance used to identify
 #'   an observed input after the model's quantitative scaling is applied.
 #' @param seed Optional nonnegative whole-number seed for sequence sampling and
 #'   quantitative starting points.
 #'
-#' @return An object of class `magp_next_point`. Its `point` component is a
-#'   one-row data frame ready for evaluation. The object also contains expected
-#'   improvement, predictive mean and standard error, the searched sequences,
-#'   and start-level diagnostics.
+#' @section Sequence search:
+#' If `sequences` is supplied, only those rows are searched. Otherwise, the
+#' function searches every permutation when there are no more than
+#' `max_sequences`. For a larger sequence space, it searches a reproducible
+#' sample of `max_sequences` permutations when `seed` is supplied.
+#'
+#' @section Reading the result:
+#' The returned object contains:
+#'
+#' * `call`: the function call;
+#' * `point`: the selected input as a one-row data frame;
+#' * `expected_improvement`: the score of the selected point;
+#' * `predicted_mean` and `predicted_standard_error`: the MaGP prediction;
+#' * `direction`, `best_observed`, and `xi`: the expected-improvement settings;
+#' * `bounds`: the quantitative lower and upper bounds;
+#' * `sequences` and `sequence_source`: the permutations searched and how they
+#'   were obtained;
+#' * `selected_sequence` and `selected_start`: the winning search indices;
+#' * `n_starts`: the number of quantitative starts per sequence;
+#' * `workers_requested`, `workers_used`, and `execution`: the parallel-search
+#'   settings actually used; and
+#' * `diagnostics`: the result of every sequence and starting-point search.
+#'
+#' @return An object of class `magp_next_point` containing the selected point,
+#'   its prediction, and search diagnostics.
 #'
 #' @examples
 #' \donttest{
@@ -537,6 +558,7 @@ environment(.magp_parallel_acquisition_task) <- baseenv()
 #'   seed = 2
 #' )
 #' next_run$point
+#' next_run$expected_improvement
 #' }
 #'
 #' @export
@@ -612,7 +634,7 @@ magp_next_point <- function(
     exclude_observed = exclude_observed,
     duplicate_tolerance = duplicate_tolerance
   )
-  workers_used <- min(requested_workers, length(tasks))
+  workers_used <- min(requested_workers, length(tasks), 2L)
 
   if (workers_used == 1L) {
     results <- lapply(tasks, function(task) {

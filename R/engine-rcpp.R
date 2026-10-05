@@ -384,7 +384,7 @@ environment(.magp_parallel_start) <- baseenv()
     seq_len(n_starts),
     seeds
   )
-  workers_used <- min(requested_workers, n_starts)
+  workers_used <- min(requested_workers, n_starts, 2L)
 
   if (workers_used == 1L) {
     results <- lapply(tasks, function(task) {
@@ -478,7 +478,7 @@ environment(.magp_parallel_start) <- baseenv()
 #' @param n_starts Number of independent parameter starts. The fitted object
 #'   contains the result with the lowest objective among the converged starts.
 #' @param workers Number of local worker processes. Values greater than one use
-#'   a socket cluster and are capped at `n_starts`.
+#'   a socket cluster and are capped at two or `n_starts`, whichever is lower.
 #'
 #' @details The covariance is a sum of component-specific terms. Each term
 #'   combines the distance between two quantitative levels with the distance

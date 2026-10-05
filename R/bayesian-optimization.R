@@ -158,57 +158,84 @@
   )
 }
 
-#' Run sequential Bayesian optimization with a MaGP surrogate
+#' Continue Bayesian optimization from completed experiments
 #'
-#' Repeatedly fits a two-dimensional or full-mapping MaGP model, maximizes
-#' expected improvement over quantitative inputs and sequence permutations,
-#' evaluates a user-supplied objective function, and adds the result to the
-#' training data.
+#' Use this function when initial experiments and their responses are already
+#' available. It fits a MaGP model, selects a new input with expected
+#' improvement, evaluates `FUN`, and adds the new result to the data. This
+#' process repeats for at most `n_iter` new evaluations.
 #'
-#' @param FUN Objective function. It is called with one named argument for each
-#'   input column. It must return one finite numeric value or a list containing
-#'   a finite numeric `Score` or `Value` component.
-#' @param X Initial quantitative-sequence inputs. A response column named `y`
-#'   may be included.
-#' @param y Optional initial response vector. It may be omitted when `X`
-#'   contains a column named `y`.
-#' @param model Sequence mapping used by the surrogate: `"2d"` or `"full"`.
-#' @param direction Whether `FUN` is being minimized or maximized.
-#' @param n_iter Maximum number of new objective evaluations.
-#' @param xi Nonnegative exploration offset for expected improvement.
-#' @param stop_ei Nonnegative absolute expected-improvement threshold. The
-#'   search stops after `stop_patience` consecutive evaluated points at or
-#'   below this threshold.
-#' @param stop_patience Positive whole number of consecutive low-EI evaluations
-#'   required for early stopping.
-#' @param seed Optional nonnegative whole-number seed. It controls model starts,
-#'   sequence sampling, and acquisition starts without changing the caller's
-#'   random-number state.
-#' @param fit_control Named list of additional arguments for [magp2d_fit()] or
-#'   [magpfull_fit()], such as `tau`, `n_starts`, and `workers`. `X`, `y`, and
-#'   `seed` are managed by this function.
-#' @param acquisition_control Named list of additional arguments for
-#'   [magp_next_point()], such as `lower`, `upper`, `sequences`, `n_starts`,
-#'   `workers`, and `maxit`. The model, direction, `xi`, reference value, and
-#'   seed are managed by this function.
-#' @param objective_args Named list of fixed additional arguments supplied to
-#'   `FUN` after the input columns.
-#' @param verbose Logical; if `TRUE`, print one line after every new objective
-#'   evaluation.
+#' @param FUN Function that evaluates one experiment. Its argument names must
+#'   match the columns of `X`. It must return one finite number, or a list with
+#'   one finite number named `Score` or `Value`.
+#' @param X Initial inputs as a numeric matrix or data frame. The first half of
+#'   the columns contains quantitative values. The second half contains the
+#'   sequence positions, with each row forming a permutation of `1:q`. `X` may
+#'   also contain a response column named `y`.
+#' @param y Numeric responses for the rows of `X`. Leave this as `NULL` when
+#'   `X` contains a column named `y`.
+#' @param model MaGP mapping to fit. Use `"2d"` for the compact mapping or
+#'   `"full"` for the full mapping.
+#' @param direction Use `"minimize"` when smaller responses are better and
+#'   `"maximize"` when larger responses are better.
+#' @param n_iter Maximum number of new experiments to evaluate.
+#' @param xi Nonnegative expected-improvement offset. The default, `0`, uses
+#'   the current best response as the improvement target. Larger values require
+#'   a candidate to exceed that target by more.
+#' @param stop_ei Nonnegative early-stopping threshold for expected
+#'   improvement.
+#' @param stop_patience Number of consecutive selected points with expected
+#'   improvement less than or equal to `stop_ei` required to stop early.
+#' @param seed Optional nonnegative whole-number seed for reproducible model
+#'   starts and acquisition searches. The caller's random-number state is
+#'   preserved.
+#' @param fit_control Optional named list passed to [magp2d_fit()] or
+#'   [magpfull_fit()]. Common choices include `tau`, `maxeval`, `n_starts`, and
+#'   `workers`. This function supplies `X`, `y`, and `seed`.
+#' @param acquisition_control Optional named list passed to
+#'   [magp_next_point()]. Common choices include `lower`, `upper`, `sequences`,
+#'   `n_starts`, `workers`, and `maxit`. This function supplies the fitted
+#'   model, direction, `xi`, current best response, and seed.
+#' @param objective_args Optional named list of fixed arguments passed to `FUN`
+#'   in addition to the input columns.
+#' @param verbose If `TRUE`, print the observed response and expected
+#'   improvement after each new evaluation.
 #'
-#' @details The initial responses are treated as completed experiments and are
-#'   not evaluated again. At each iteration, the current observed optimum is
-#'   used as the reference value for expected improvement. Previously observed
-#'   inputs are excluded by default through [magp_next_point()].
+#' @section How the loop works:
+#' The initial rows of `X` are treated as completed experiments and are not
+#' evaluated again. Each iteration performs four steps:
 #'
-#'   `FUN` follows a named-argument interface. For input columns `A`, `B`, `a`,
-#'   and `b`, for instance, the function is called as `FUN(A, B, a, b, ...)`.
-#'   A database lookup or other data source can be used by wrapping it in a
-#'   function with the same interface.
+#' 1. fit the selected MaGP model to all results collected so far;
+#' 2. use [magp_next_point()] to select an unobserved input;
+#' 3. call `FUN` at that input; and
+#' 4. add the response and refit the model.
 #'
-#' @return An object of class `magp_bayes_opt` with components `best_point`,
-#'   `best_value`, `history`, `model`, `X`, `y`, `acquisitions`, and the search
-#'   settings. The final fitted model includes every completed evaluation.
+#' `FUN` receives one named argument for each input column. For columns `A`,
+#' `B`, `a`, and `b`, for example, the call is equivalent to
+#' `FUN(A = ..., B = ..., a = ..., b = ...)`.
+#'
+#' @section Reading the result:
+#' The returned object contains:
+#'
+#' * `call`: the function call;
+#' * `best_point`: the input row with the best observed response;
+#' * `best_value`: the best observed response;
+#' * `best_index`: the row number of the best result in `X` and `y`;
+#' * `history`: the initial and newly evaluated rows in evaluation order;
+#' * `model`: the final fitted MaGP model;
+#' * `X` and `y`: all inputs and responses used by the final model;
+#' * `acquisitions`: details from each call to [magp_next_point()];
+#' * `mapping` and `direction`: the model and optimization direction;
+#' * `iterations_requested` and `iterations_completed`: the requested and
+#'   completed numbers of new evaluations;
+#' * `stop_reason`: why the loop ended;
+#' * `xi`, `stop_ei`, and `stop_patience`: the acquisition and stopping
+#'   settings; and
+#' * `fit_control` and `acquisition_control`: the control lists used in the
+#'   search.
+#'
+#' @return An object of class `magp_bayes_opt`. The final fitted model includes
+#'   every completed evaluation.
 #'
 #' @references
 #' Jones, D. R., Schonlau, M., and Welch, W. J. (1998).
@@ -230,17 +257,19 @@
 #'   do.call(objective, as.list(row))
 #' })
 #' result <- magp_bayes_optimize(
-#'   objective,
-#'   design$design,
-#'   initial_y,
+#'   FUN = objective,
+#'   X = design$design,
+#'   y = initial_y,
 #'   direction = "maximize",
 #'   n_iter = 1,
 #'   seed = 2,
-#'   fit_control = list(maxeval = 50),
-#'   acquisition_control = list(n_starts = 2, maxit = 20)
+#'   fit_control = list(maxeval = 100),
+#'   acquisition_control = list(n_starts = 2, maxit = 20),
+#'   verbose = FALSE
 #' )
 #' result$best_point
 #' result$best_value
+#' result$history
 #' }
 #'
 #' @export
