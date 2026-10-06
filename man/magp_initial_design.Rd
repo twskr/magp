@@ -21,7 +21,9 @@ magp_initial_design(
   tmax = 10L,
   initial_sequence = NULL,
   initial_quantity = NULL,
-  seed = NULL
+  seed = NULL,
+  sequence_method = c("sann", "random", "sfta"),
+  sfta_control = list()
 )
 }
 \arguments{
@@ -66,6 +68,13 @@ search.}
 \item{seed}{Optional nonnegative whole-number seed. Separate deterministic
 seeds are used for the three stages, and the caller's random-number state
 is preserved.}
+
+\item{sequence_method}{Method for the sequence portion. Choose \code{"random"},
+\code{"sfta"} for space-filling threshold accepting, or \code{"sann"} for simulated
+annealing. The default is \code{"sann"} for backward compatibility.}
+
+\item{sfta_control}{Named list of SFTA settings, passed to
+\code{\link[=magp_sequence_design]{magp_sequence_design()}}. Used only for \code{sequence_method = "sfta"}.}
 }
 \value{
 An object of class \code{magp_initial_design}. Its \code{design} element is an
@@ -75,11 +84,17 @@ contain sequence positions. The component searches and their criterion
 values are retained for inspection.
 }
 \description{
-Builds an initial design in three steps. It first optimizes the sequence
+Builds an initial design in three steps. It first generates the sequence
 permutations, then constructs a maximin-style Latin hypercube for the
 quantitative levels, and finally aligns the two fixed designs by permuting
 whole quantitative rows. The final alignment preserves both the Latin
 hypercube and every sequence permutation.
+}
+\details{
+The sequence method does not change how quantitative levels are
+generated. With a fixed \code{seed}, all three methods use the same quantitative
+design before the final row-alignment step. The alignment can change its
+row order but not its values or Latin-hypercube structure.
 }
 \examples{
 design <- magp_initial_design(
@@ -92,6 +107,17 @@ design <- magp_initial_design(
 )
 design$design
 design$criteria
+
+random <- magp_initial_design(
+  8, 4, sequence_method = "random", seed = 1,
+  quantity_maxit = 100, alignment_maxit = 100
+)
+sfta <- magp_initial_design(
+  8, 4, sequence_method = "sfta", seed = 1, sequence_maxit = 200,
+  quantity_maxit = 100, alignment_maxit = 100,
+  sfta_control = list(nstarts = 2, ncalibrate = 50)
+)
+rbind(random = random$criteria, sfta = sfta$criteria)
 
 }
 \references{

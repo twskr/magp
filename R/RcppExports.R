@@ -17,3 +17,7 @@ cpp_magp_cross_covariance <- function(training, prediction, parameters, q, mappi
     .Call(`_magp_cpp_magp_cross_covariance`, training, prediction, parameters, q, mapping_type)
 }
 
+magp_sfta_search_cpp <- function(orders, pair_weight, space_weight, p, maxit, ncalibrate, nrounds) {
+    .Call(`_magp_magp_sfta_search_cpp`, orders, pair_weight, space_weight, p, maxit, ncalibrate, nrounds)
+}
+

@@ -172,7 +172,7 @@ magp_joint_criterion <- function(quantity, sequence, quantity_weight = 0.5,
 
 #' Construct a quantitative-sequence initial design
 #'
-#' Builds an initial design in three steps. It first optimizes the sequence
+#' Builds an initial design in three steps. It first generates the sequence
 #' permutations, then constructs a maximin-style Latin hypercube for the
 #' quantitative levels, and finally aligns the two fixed designs by permuting
 #' whole quantitative rows. The final alignment preserves both the Latin
@@ -203,6 +203,16 @@ magp_joint_criterion <- function(quantity, sequence, quantity_weight = 0.5,
 #' @param seed Optional nonnegative whole-number seed. Separate deterministic
 #'   seeds are used for the three stages, and the caller's random-number state
 #'   is preserved.
+#' @param sequence_method Method for the sequence portion. Choose `"random"`,
+#'   `"sfta"` for space-filling threshold accepting, or `"sann"` for simulated
+#'   annealing. The default is `"sann"` for backward compatibility.
+#' @param sfta_control Named list of SFTA settings, passed to
+#'   [magp_sequence_design()]. Used only for `sequence_method = "sfta"`.
+#'
+#' @details The sequence method does not change how quantitative levels are
+#'   generated. With a fixed `seed`, all three methods use the same quantitative
+#'   design before the final row-alignment step. The alignment can change its
+#'   row order but not its values or Latin-hypercube structure.
 #'
 #' @return An object of class `magp_initial_design`. Its `design` element is an
 #'   `n` by `2*q` matrix ready to use as the input to a MAGP fitting function.
@@ -228,6 +238,17 @@ magp_joint_criterion <- function(quantity, sequence, quantity_weight = 0.5,
 #' design$design
 #' design$criteria
 #'
+#' random <- magp_initial_design(
+#'   8, 4, sequence_method = "random", seed = 1,
+#'   quantity_maxit = 100, alignment_maxit = 100
+#' )
+#' sfta <- magp_initial_design(
+#'   8, 4, sequence_method = "sfta", seed = 1, sequence_maxit = 200,
+#'   quantity_maxit = 100, alignment_maxit = 100,
+#'   sfta_control = list(nstarts = 2, ncalibrate = 50)
+#' )
+#' rbind(random = random$criteria, sfta = sfta$criteria)
+#'
 #' @export
 magp_initial_design <- function(
     n, q, pair_weight = 0.2, sequence_space_weight = 0.8,
@@ -235,8 +256,10 @@ magp_initial_design <- function(
     sequence_maxit = 10000L, quantity_maxit = 10000L,
     alignment_maxit = 10000L, sequence_temp = 0.1,
     quantity_temp = 0.01, alignment_temp = 0.001, tmax = 10L,
-    initial_sequence = NULL, initial_quantity = NULL, seed = NULL) {
+    initial_sequence = NULL, initial_quantity = NULL, seed = NULL,
+    sequence_method = c("sann", "random", "sfta"), sfta_control = list()) {
   call <- match.call()
+  sequence_method <- match.arg(sequence_method)
   .magp2d_validate_scalar(n, "n", lower = 2, integer = TRUE)
   .magp2d_validate_scalar(q, "q", lower = 3, integer = TRUE)
   .magp2d_validate_scalar(p, "p", lower = 1, integer = TRUE)
@@ -269,7 +292,9 @@ magp_initial_design <- function(
     temp = sequence_temp,
     tmax = tmax,
     initial = initial_sequence,
-    seed = .magp_design_seed(seed, 0)
+    seed = .magp_design_seed(seed, 0),
+    method = sequence_method,
+    sfta_control = sfta_control
   )
   quantity_search <- magp_quantitative_design(
     n = n,
@@ -312,6 +337,7 @@ magp_initial_design <- function(
     q = q,
     p = p,
     sequence_search = sequence_search,
+    sequence_method = sequence_method,
     quantity_search = quantity_search,
     alignment = alignment,
     seed = seed,
@@ -333,6 +359,7 @@ print.magp_initial_design <- function(x, ...) {
   cat("Quantitative-sequence initial design\n")
   cat("  Runs:", x$n, "\n")
   cat("  Components:", x$q, "\n")
+  cat("  Sequence method:", x$sequence_search$method, "\n")
   cat("  Sequence criterion:", format(x$criteria[["sequence"]], digits = 7), "\n")
   cat(
     "  Quantitative criterion:",

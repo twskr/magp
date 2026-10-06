@@ -2,7 +2,7 @@
 % Please edit documentation in R/acquisition.R
 \name{magp_next_point}
 \alias{magp_next_point}
-\title{Find the next quantitative-sequence experiment}
+\title{Select the next quantitative-sequence experiment}
 \usage{
 magp_next_point(
   object,
@@ -26,37 +26,38 @@ magp_next_point(
 \arguments{
 \item{object}{A fitted \code{magp2d} or \code{magpfull} model.}
 
-\item{direction}{Whether the objective is being minimized or maximized.}
+\item{direction}{Use \code{"minimize"} when smaller responses are better and
+\code{"maximize"} when larger responses are better.}
 
-\item{xi}{A nonnegative exploration offset used by expected improvement.}
+\item{xi}{Nonnegative improvement offset used in expected improvement.}
 
-\item{best}{Optional finite reference value. The current observed optimum is
-used when omitted.}
+\item{best}{Optional response that a new point should improve upon. When it
+is omitted, the function uses the best observed response in \code{object}.}
 
-\item{lower, upper}{Optional quantitative bounds. Each may contain one value
-or \code{q} values. Defaults are \verb{[0, 1]} for inputs fitted on that scale and
-the stored training range for inputs that were scaled during fitting.}
+\item{lower, upper}{Optional lower and upper bounds for the quantitative
+inputs. Supply one value for all components or one value per component.
+The defaults use the prediction ranges stored in the fitted model.}
 
 \item{sequences}{Optional matrix of candidate sequence permutations. When
 omitted, every permutation is used if their number does not exceed
 \code{max_sequences}; otherwise a reproducible sample is searched.}
 
-\item{max_sequences}{Maximum number of automatically generated sequence
-candidates.}
+\item{max_sequences}{Largest number of sequence candidates generated when
+\code{sequences} is not supplied.}
 
-\item{n_starts}{Number of quantitative starting points used for each
-sequence. The first is the midpoint of the bounds and the rest are random.}
+\item{n_starts}{Number of quantitative starting points searched for each
+sequence candidate.}
 
-\item{workers}{Number of local worker processes. Values greater than one use
-a portable socket cluster and are capped at the number of search tasks.}
+\item{workers}{Number of local worker processes. Use \code{1} for sequential
+execution. At most two processes are used.}
 
-\item{maxit}{Maximum number of \code{L-BFGS-B} iterations for each start.}
+\item{maxit}{Maximum optimization iterations for each quantitative start.}
 
-\item{factr, pgtol}{Convergence controls passed to \code{\link[stats:optim]{stats::optim()}} for its
-\code{L-BFGS-B} method.}
+\item{factr, pgtol}{Advanced convergence settings passed to
+\code{\link[stats:optim]{stats::optim()}} for its \code{"L-BFGS-B"} method.}
 
-\item{exclude_observed}{Logical; if \code{TRUE}, previously observed inputs are
-not eligible for selection.}
+\item{exclude_observed}{If \code{TRUE}, do not return an input that is already in
+the training data.}
 
 \item{duplicate_tolerance}{Nonnegative absolute tolerance used to identify
 an observed input after the model's quantitative scaling is applied.}
@@ -65,16 +66,41 @@ an observed input after the model's quantitative scaling is applied.}
 quantitative starting points.}
 }
 \value{
-An object of class \code{magp_next_point}. Its \code{point} component is a
-one-row data frame ready for evaluation. The object also contains expected
-improvement, predictive mean and standard error, the searched sequences,
-and start-level diagnostics.
+An object of class \code{magp_next_point} containing the selected point,
+its prediction, and search diagnostics.
 }
 \description{
-Maximizes expected improvement over quantitative inputs and sequence
-permutations. Each sequence is searched from several quantitative starting
-points, and the best result across all searches is returned.
+Searches the allowed quantitative values and sequence permutations, then
+returns the unobserved point with the largest expected improvement.
 }
+\section{Sequence search}{
+
+If \code{sequences} is supplied, only those rows are searched. Otherwise, the
+function searches every permutation when there are no more than
+\code{max_sequences}. For a larger sequence space, it searches a reproducible
+sample of \code{max_sequences} permutations when \code{seed} is supplied.
+}
+
+\section{Reading the result}{
+
+The returned object contains:
+\itemize{
+\item \code{call}: the function call;
+\item \code{point}: the selected input as a one-row data frame;
+\item \code{expected_improvement}: the score of the selected point;
+\item \code{predicted_mean} and \code{predicted_standard_error}: the MaGP prediction;
+\item \code{direction}, \code{best_observed}, and \code{xi}: the expected-improvement settings;
+\item \code{bounds}: the quantitative lower and upper bounds;
+\item \code{sequences} and \code{sequence_source}: the permutations searched and how they
+were obtained;
+\item \code{selected_sequence} and \code{selected_start}: the winning search indices;
+\item \code{n_starts}: the number of quantitative starts per sequence;
+\item \code{workers_requested}, \code{workers_used}, and \code{execution}: the parallel-search
+settings actually used; and
+\item \code{diagnostics}: the result of every sequence and starting-point search.
+}
+}
+
 \examples{
 \donttest{
 train <- read.table(
@@ -90,6 +116,7 @@ next_run <- magp_next_point(
   seed = 2
 )
 next_run$point
+next_run$expected_improvement
 }
 
 }

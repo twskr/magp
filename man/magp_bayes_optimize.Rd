@@ -2,7 +2,7 @@
 % Please edit documentation in R/bayesian-optimization.R
 \name{magp_bayes_optimize}
 \alias{magp_bayes_optimize}
-\title{Run sequential Bayesian optimization with a MaGP surrogate}
+\title{Continue Bayesian optimization from completed experiments}
 \usage{
 magp_bayes_optimize(
   FUN,
@@ -22,72 +22,104 @@ magp_bayes_optimize(
 )
 }
 \arguments{
-\item{FUN}{Objective function. It is called with one named argument for each
-input column. It must return one finite numeric value or a list containing
-a finite numeric \code{Score} or \code{Value} component.}
+\item{FUN}{Function that evaluates one experiment. Its argument names must
+match the columns of \code{X}. It must return one finite number, or a list with
+one finite number named \code{Score} or \code{Value}.}
 
-\item{X}{Initial quantitative-sequence inputs. A response column named \code{y}
-may be included.}
+\item{X}{Initial inputs as a numeric matrix or data frame. The first half of
+the columns contains quantitative values. The second half contains the
+sequence positions, with each row forming a permutation of \code{1:q}. \code{X} may
+also contain a response column named \code{y}.}
 
-\item{y}{Optional initial response vector. It may be omitted when \code{X}
-contains a column named \code{y}.}
+\item{y}{Numeric responses for the rows of \code{X}. Leave this as \code{NULL} when
+\code{X} contains a column named \code{y}.}
 
-\item{model}{Sequence mapping used by the surrogate: \code{"2d"} or \code{"full"}.}
+\item{model}{MaGP mapping to fit. Use \code{"2d"} for the compact mapping or
+\code{"full"} for the full mapping.}
 
-\item{direction}{Whether \code{FUN} is being minimized or maximized.}
+\item{direction}{Use \code{"minimize"} when smaller responses are better and
+\code{"maximize"} when larger responses are better.}
 
-\item{n_iter}{Maximum number of new objective evaluations.}
+\item{n_iter}{Maximum number of new experiments to evaluate.}
 
-\item{xi}{Nonnegative exploration offset for expected improvement.}
+\item{xi}{Nonnegative expected-improvement offset. The default, \code{0}, uses
+the current best response as the improvement target. Larger values require
+a candidate to exceed that target by more.}
 
-\item{stop_ei}{Nonnegative absolute expected-improvement threshold. The
-search stops after \code{stop_patience} consecutive evaluated points at or
-below this threshold.}
+\item{stop_ei}{Nonnegative early-stopping threshold for expected
+improvement.}
 
-\item{stop_patience}{Positive whole number of consecutive low-EI evaluations
-required for early stopping.}
+\item{stop_patience}{Number of consecutive selected points with expected
+improvement less than or equal to \code{stop_ei} required to stop early.}
 
-\item{seed}{Optional nonnegative whole-number seed. It controls model starts,
-sequence sampling, and acquisition starts without changing the caller's
-random-number state.}
+\item{seed}{Optional nonnegative whole-number seed for reproducible model
+starts and acquisition searches. The caller's random-number state is
+preserved.}
 
-\item{fit_control}{Named list of additional arguments for \code{\link[=magp2d_fit]{magp2d_fit()}} or
-\code{\link[=magpfull_fit]{magpfull_fit()}}, such as \code{tau}, \code{n_starts}, and \code{workers}. \code{X}, \code{y}, and
-\code{seed} are managed by this function.}
+\item{fit_control}{Optional named list passed to \code{\link[=magp2d_fit]{magp2d_fit()}} or
+\code{\link[=magpfull_fit]{magpfull_fit()}}. Common choices include \code{tau}, \code{maxeval}, \code{n_starts}, and
+\code{workers}. This function supplies \code{X}, \code{y}, and \code{seed}.}
 
-\item{acquisition_control}{Named list of additional arguments for
-\code{\link[=magp_next_point]{magp_next_point()}}, such as \code{lower}, \code{upper}, \code{sequences}, \code{n_starts},
-\code{workers}, and \code{maxit}. The model, direction, \code{xi}, reference value, and
-seed are managed by this function.}
+\item{acquisition_control}{Optional named list passed to
+\code{\link[=magp_next_point]{magp_next_point()}}. Common choices include \code{lower}, \code{upper}, \code{sequences},
+\code{n_starts}, \code{workers}, and \code{maxit}. This function supplies the fitted
+model, direction, \code{xi}, current best response, and seed.}
 
-\item{objective_args}{Named list of fixed additional arguments supplied to
-\code{FUN} after the input columns.}
+\item{objective_args}{Optional named list of fixed arguments passed to \code{FUN}
+in addition to the input columns.}
 
-\item{verbose}{Logical; if \code{TRUE}, print one line after every new objective
-evaluation.}
+\item{verbose}{If \code{TRUE}, print the observed response and expected
+improvement after each new evaluation.}
 }
 \value{
-An object of class \code{magp_bayes_opt} with components \code{best_point},
-\code{best_value}, \code{history}, \code{model}, \code{X}, \code{y}, \code{acquisitions}, and the search
-settings. The final fitted model includes every completed evaluation.
+An object of class \code{magp_bayes_opt}. The final fitted model includes
+every completed evaluation.
 }
 \description{
-Repeatedly fits a two-dimensional or full-mapping MaGP model, maximizes
-expected improvement over quantitative inputs and sequence permutations,
-evaluates a user-supplied objective function, and adds the result to the
-training data.
+Use this function when initial experiments and their responses are already
+available. It fits a MaGP model, selects a new input with expected
+improvement, evaluates \code{FUN}, and adds the new result to the data. This
+process repeats for at most \code{n_iter} new evaluations.
 }
-\details{
-The initial responses are treated as completed experiments and are
-not evaluated again. At each iteration, the current observed optimum is
-used as the reference value for expected improvement. Previously observed
-inputs are excluded by default through \code{\link[=magp_next_point]{magp_next_point()}}.
+\section{How the loop works}{
 
-\code{FUN} follows a named-argument interface. For input columns \code{A}, \code{B}, \code{a},
-and \code{b}, for instance, the function is called as \code{FUN(A, B, a, b, ...)}.
-A database lookup or other data source can be used by wrapping it in a
-function with the same interface.
+The initial rows of \code{X} are treated as completed experiments and are not
+evaluated again. Each iteration performs four steps:
+\enumerate{
+\item fit the selected MaGP model to all results collected so far;
+\item use \code{\link[=magp_next_point]{magp_next_point()}} to select an unobserved input;
+\item call \code{FUN} at that input; and
+\item add the response and refit the model.
 }
+
+\code{FUN} receives one named argument for each input column. For columns \code{A},
+\code{B}, \code{a}, and \code{b}, for example, the call is equivalent to
+\code{FUN(A = ..., B = ..., a = ..., b = ...)}.
+}
+
+\section{Reading the result}{
+
+The returned object contains:
+\itemize{
+\item \code{call}: the function call;
+\item \code{best_point}: the input row with the best observed response;
+\item \code{best_value}: the best observed response;
+\item \code{best_index}: the row number of the best result in \code{X} and \code{y};
+\item \code{history}: the initial and newly evaluated rows in evaluation order;
+\item \code{model}: the final fitted MaGP model;
+\item \code{X} and \code{y}: all inputs and responses used by the final model;
+\item \code{acquisitions}: details from each call to \code{\link[=magp_next_point]{magp_next_point()}};
+\item \code{mapping} and \code{direction}: the model and optimization direction;
+\item \code{iterations_requested} and \code{iterations_completed}: the requested and
+completed numbers of new evaluations;
+\item \code{stop_reason}: why the loop ended;
+\item \code{xi}, \code{stop_ei}, and \code{stop_patience}: the acquisition and stopping
+settings; and
+\item \code{fit_control} and \code{acquisition_control}: the control lists used in the
+search.
+}
+}
+
 \examples{
 \donttest{
 design <- magp_initial_design(n = 6, q = 3, seed = 1)
@@ -102,17 +134,19 @@ initial_y <- apply(design$design, 1L, function(row) {
   do.call(objective, as.list(row))
 })
 result <- magp_bayes_optimize(
-  objective,
-  design$design,
-  initial_y,
+  FUN = objective,
+  X = design$design,
+  y = initial_y,
   direction = "maximize",
   n_iter = 1,
   seed = 2,
-  fit_control = list(maxeval = 50),
-  acquisition_control = list(n_starts = 2, maxit = 20)
+  fit_control = list(maxeval = 100),
+  acquisition_control = list(n_starts = 2, maxit = 20),
+  verbose = FALSE
 )
 result$best_point
 result$best_value
+result$history
 }
 
 }

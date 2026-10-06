@@ -143,7 +143,7 @@ test_that("parallel and sequential starts agree for both models", {
     data$X, data$y,
     seed = 47,
     n_starts = 3,
-    workers = 2,
+    workers = 4,
     maxeval = 1
   ))
 

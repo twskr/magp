@@ -161,6 +161,13 @@ test_that("next-point search is reproducible and returns an unobserved point", {
   )
 
   expect_s3_class(first, "magp_next_point")
+  expect_setequal(names(first), c(
+    "call", "point", "expected_improvement", "predicted_mean",
+    "predicted_standard_error", "direction", "best_observed", "xi",
+    "bounds", "sequences", "sequence_source", "selected_sequence",
+    "selected_start", "n_starts", "workers_requested", "workers_used",
+    "execution", "diagnostics"
+  ))
   expect_equal(first$point, second$point, tolerance = 0)
   expect_equal(first$expected_improvement,
                second$expected_improvement, tolerance = 0)
@@ -200,6 +207,24 @@ test_that("next-point controls reject invalid searches", {
     ),
     "duplicated"
   )
+})
+
+test_that("parallel acquisition search uses at most two workers", {
+  skip_on_cran()
+  skip_if_not(
+    file.exists(file.path(find.package("magp"), "Meta", "package.rds")),
+    "parallel PSOCK test requires an installed package"
+  )
+  result <- magp_next_point(
+    bo_fit("2d"),
+    sequences = rbind(c(1, 2, 3)),
+    n_starts = 3,
+    workers = 4,
+    maxit = 2,
+    seed = 20
+  )
+  expect_equal(result$workers_requested, 4L)
+  expect_equal(result$workers_used, 2L)
 })
 
 test_that("full mapping acquisition supports two components", {
@@ -299,6 +324,12 @@ test_that("sequential Bayesian optimization records and refits each run", {
   ))
 
   expect_s3_class(result, "magp_bayes_opt")
+  expect_setequal(names(result), c(
+    "call", "best_point", "best_value", "best_index", "history", "model",
+    "X", "y", "acquisitions", "mapping", "direction",
+    "iterations_requested", "iterations_completed", "stop_reason", "xi",
+    "stop_ei", "stop_patience", "fit_control", "acquisition_control"
+  ))
   expect_equal(result$iterations_completed, 2L)
   expect_equal(nrow(result$X), 10L)
   expect_equal(length(result$y), 10L)
@@ -385,4 +416,40 @@ test_that("a supplied loop seed preserves the caller's random state", {
   ))
   expect_s3_class(result, "magp_bayes_opt")
   expect_identical(.Random.seed, before)
+})
+
+test_that("response columns and documented objective returns are supported", {
+  data <- bo_example()
+  combined <- data.frame(data$X, y = data$y, check.names = FALSE)
+  result <- suppressWarnings(magp_bayes_optimize(
+    FUN = function(...) 0,
+    X = combined,
+    n_iter = 0,
+    seed = 97,
+    fit_control = list(maxeval = 1),
+    verbose = FALSE
+  ))
+
+  expect_equal(result$X, data$X, ignore_attr = TRUE)
+  expect_equal(result$y, data$y)
+  expect_true(all(result$history$Initial))
+  expect_equal(nrow(result$history), nrow(data$X))
+
+  point <- as.data.frame(data$X[1, , drop = FALSE])
+  value <- magp:::.magp_bo_evaluate(
+    function(..., offset) list(Value = offset),
+    point,
+    objective_args = list(offset = 3.5),
+    context = "test"
+  )
+  expect_equal(value, 3.5)
+  expect_error(
+    magp:::.magp_bo_evaluate(
+      function(...) list(result = 1),
+      point,
+      objective_args = list(),
+      context = "test"
+    ),
+    "Score or Value"
+  )
 })

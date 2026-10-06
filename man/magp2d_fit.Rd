@@ -58,7 +58,7 @@ seed when \code{n_starts = 1}.}
 contains the result with the lowest objective among the converged starts.}
 
 \item{workers}{Number of local worker processes. Values greater than one use
-a socket cluster and are capped at \code{n_starts}.}
+a socket cluster and are capped at two or \code{n_starts}, whichever is lower.}
 }
 \value{
 An object of class \code{magp2d}.

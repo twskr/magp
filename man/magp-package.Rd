@@ -23,8 +23,9 @@ gradients, and cross-covariances are implemented in C++ with \code{Rcpp}.
 
 \code{\link[=magp_initial_design]{magp_initial_design()}} constructs a space-filling quantitative-sequence
 design before responses are collected. It combines a Latin hypercube with
-balanced sequence permutations and preserves both structures during their
-joint alignment.
+sequence permutations generated randomly or improved with simulated
+annealing or space-filling threshold accepting. Joint alignment preserves
+both component designs.
 
 \code{\link[=magp_expected_improvement]{magp_expected_improvement()}} evaluates improvement using latent predictive
 uncertainty. \code{\link[=magp_next_point]{magp_next_point()}} searches quantitative bounds and sequence
