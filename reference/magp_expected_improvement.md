@@ -1,8 +1,8 @@
-# Calculate expected improvement for a fitted MaGP model
+# Score candidate experiments with expected improvement
 
-Evaluates the expected improvement acquisition function at one or more
-quantitative-sequence inputs. Predictive uncertainty is taken from the
-latent, noise-free surface.
+Calculates expected improvement for one or more candidate rows. Higher
+values indicate candidates that offer a better combination of predicted
+improvement and uncertainty.
 
 ## Usage
 
@@ -29,30 +29,31 @@ magp_expected_improvement(
 
 - direction:
 
-  Whether the objective is being minimized or maximized.
+  Use `"minimize"` when smaller responses are better and `"maximize"`
+  when larger responses are better.
 
 - best:
 
-  Optional finite reference value. When omitted, the smallest or largest
-  observed response is used according to `direction`.
+  Optional response that a new point should improve upon. When it is
+  omitted, the function uses the best observed response in `object`.
 
 - xi:
 
-  A nonnegative exploration offset. Larger values require a greater
-  improvement over `best` before favoring exploitation.
+  Nonnegative improvement offset. The default is `0`. Larger values
+  require a candidate to exceed `best` by more.
 
 ## Value
 
-A nonnegative numeric vector with one value per row of `newdata`.
+A nonnegative numeric vector with one expected-improvement value per row
+of `newdata`.
 
 ## Details
 
-Let `m` and `s` denote the latent predictive mean and standard error.
-For maximization, the improvement is `m - best - xi`; for minimization,
-it is `best - m - xi`. If `s` is positive, expected improvement is
-`improvement * pnorm(z) + s * dnorm(z)`, where `z = improvement / s`.
-Values with predictive variance below `1e-8`, and inputs already present
-in the training data, receive expected improvement zero.
+Expected improvement uses the model's latent predictive mean and
+standard error. A candidate can receive a high value because its
+predicted response is good, its uncertainty is large, or both. Rows
+already present in the training data receive a value of zero.
+Predictions with variance below `1e-8` also receive zero.
 
 ## References
 

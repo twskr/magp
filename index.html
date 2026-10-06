@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">magp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.12.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.12.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,8 +58,8 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="magp">magp<a class="anchor" aria-label="anchor" href="#magp"></a>
 </h1></div>
-<p><a href="https://CRAN.R-project.org/package=magp" class="external-link"><img src="https://www.r-pkg.org/badges/version/magp" alt="CRAN status"></a> <a href="https://github.com/twskr/magp/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/twskr/magp/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a> <a href="https://twskr.github.io/magp/"><img src="https://img.shields.io/badge/docs-pkgdown-2c7fb8.svg" alt="Documentation"></a></p>
-<p>The stable release is available from CRAN. This branch contains the development version, <code>0.12.0.9000</code>.</p>
+<p><a href="https://CRAN.R-project.org/package=magp" class="external-link"><img src="https://www.r-pkg.org/badges/version/magp" alt="CRAN status"></a> <a href="https://github.com/twskr/magp/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/twskr/magp/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></p>
+<p>The current release is available from CRAN. This source tree contains version <code>0.12.0</code>.</p>
 <p><code>magp</code> is designed for experiments in which every component has both an amount and a position in a sequence. It fits an additive Gaussian process that uses both parts of the input, then returns predictions with optional uncertainty estimates. You can choose a compact two-dimensional mapping or a full mapping with <code>q - 1</code> dimensions. The most intensive covariance and gradient calculations run in C++ through <code>Rcpp</code>.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -68,12 +68,12 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"magp"</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/twskr/magp" class="external-link">magp</a></span><span class="op">)</span></span></code></pre></div>
-<p>To install the current development branch from GitHub:</p>
+<p>To install the source mirrored on GitHub:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"twskr/magp"</span><span class="op">)</span></span></code></pre></div>
 <p>A C++ toolchain is required when installing from source or GitHub.</p>
-<p>The complete function reference and tutorials are available on the <a href="https://twskr.github.io/magp/">package website</a>.</p>
+<p>The installed package includes the function reference and tutorials. In R, run <code><a href="https://twskr.github.io/magp/reference">help(package = "magp")</a></code> or <code>browseVignettes("magp")</code>. The same documentation is available on the <a href="https://twskr.github.io/magp/">package website</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
@@ -146,10 +146,10 @@
 <span>  <span class="va">train</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  n_starts <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  workers <span class="op">=</span> <span class="fl">4</span></span>
+<span>  workers <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">multistart</span><span class="op">$</span><span class="va">starts</span></span></code></pre></div>
-<p>The returned model is the converged start with the lowest objective value. If none of the starts converges, the lowest finite result is returned with a warning. The start table records every objective value, convergence code, warning, and error. A supplied seed gives the same set of starts in sequential and parallel runs. <code>workers = 1</code> uses ordinary sequential execution; larger values use a local socket cluster and are capped at <code>n_starts</code>.</p>
+<p>The returned model is the converged start with the lowest objective value. If none of the starts converges, the lowest finite result is returned with a warning. The start table records every objective value, convergence code, warning, and error. A supplied seed gives the same set of starts in sequential and parallel runs. <code>workers = 1</code> uses ordinary sequential execution; larger values use a local socket cluster and are capped at two or <code>n_starts</code>, whichever is lower.</p>
 </div>
 <div class="section level2">
 <h2 id="initial-designs">Initial designs<a class="anchor" aria-label="anchor" href="#initial-designs"></a>
@@ -159,13 +159,41 @@
 <code class="sourceCode R"><span><span class="va">initial_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/magp_initial_design.html">magp_initial_design</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  q <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  sequence_method <span class="op">=</span> <span class="st">"sfta"</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">initial_design</span><span class="op">$</span><span class="va">design</span></span>
 <span><span class="va">initial_design</span><span class="op">$</span><span class="va">criteria</span></span></code></pre></div>
 <p>The first four columns in this example contain quantitative levels and the last four contain sequence positions. The returned matrix can be passed directly to either fitting function after a response vector has been obtained.</p>
-<p>The component criteria can also be used separately:</p>
+<p>Use <code>sequence_method</code> to choose how the sequence rows are generated:</p>
+<ul>
+<li>
+<code>"random"</code> samples valid permutations without optimizing them.</li>
+<li>
+<code>"sfta"</code> uses space-filling threshold accepting to improve the complete sequence design.</li>
+<li>
+<code>"sann"</code> uses simulated annealing and remains the default for backward compatibility.</li>
+</ul>
+<p>SFTA first generates several space-filling candidate designs. It then improves the best candidate by swapping two positions within one row at a time. The search retains the best design it visits. Its thresholds and search history are available in <code>initial_design$sequence_search$sfta</code>.</p>
+<p>The sequence method does not change how the quantitative Latin hypercube is generated. With the same seed, all three methods begin with the same quantitative design before the final row-alignment step.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">random_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/magp_initial_design.html">magp_initial_design</a></span><span class="op">(</span></span>
+<span>  n <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>  q <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  sequence_method <span class="op">=</span> <span class="st">"random"</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sfta_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/magp_initial_design.html">magp_initial_design</a></span><span class="op">(</span></span>
+<span>  n <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>  q <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  sequence_method <span class="op">=</span> <span class="st">"sfta"</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>random <span class="op">=</span> <span class="va">random_design</span><span class="op">$</span><span class="va">criteria</span>, sfta <span class="op">=</span> <span class="va">sfta_design</span><span class="op">$</span><span class="va">criteria</span><span class="op">)</span></span></code></pre></div>
+<p>The component criteria can also be used separately:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/magp_sequence_criterion.html">magp_sequence_criterion</a></span><span class="op">(</span><span class="va">initial_design</span><span class="op">$</span><span class="va">sequence</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/magp_quantitative_criterion.html">magp_quantitative_criterion</a></span><span class="op">(</span><span class="va">initial_design</span><span class="op">$</span><span class="va">quantity</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/magp_joint_criterion.html">magp_joint_criterion</a></span><span class="op">(</span></span>
@@ -175,10 +203,20 @@
 <p>All design criteria are minimized. A supplied seed makes each search reproducible without changing the caller’s random-number state.</p>
 </div>
 <div class="section level2">
-<h2 id="expected-improvement-and-the-next-experiment">Expected improvement and the next experiment<a class="anchor" aria-label="anchor" href="#expected-improvement-and-the-next-experiment"></a>
+<h2 id="bayesian-optimization">Bayesian optimization<a class="anchor" aria-label="anchor" href="#bayesian-optimization"></a>
 </h2>
-<p>Expected improvement uses the latent predictive distribution from either mapping model. Set <code>direction</code> explicitly so the observed optimum is handled correctly.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>Choose the function that matches the information you already have:</p>
+<ul>
+<li>Use <code><a href="reference/magp_expected_improvement.html">magp_expected_improvement()</a></code> to score a set of candidate inputs.</li>
+<li>Use <code><a href="reference/magp_next_point.html">magp_next_point()</a></code> to select one new experiment from a fitted model.</li>
+<li>Use <code><a href="reference/magp_bayes_optimize.html">magp_bayes_optimize()</a></code> when completed experiments and responses are available.</li>
+<li>Use <code><a href="reference/magp_bayes_optimize_from_scratch.html">magp_bayes_optimize_from_scratch()</a></code> when no experiments have been run.</li>
+</ul>
+<div class="section level3">
+<h3 id="score-candidates-or-select-one-new-experiment">Score candidates or select one new experiment<a class="anchor" aria-label="anchor" href="#score-candidates-or-select-one-new-experiment"></a>
+</h3>
+<p>Expected improvement scores each candidate using its predicted response and uncertainty. Larger scores are preferred. Set <code>direction = "minimize"</code> when a smaller response is better, or <code>direction = "maximize"</code> when a larger response is better.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ei</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/magp_expected_improvement.html">magp_expected_improvement</a></span><span class="op">(</span></span>
 <span>  <span class="va">fit_2d</span>,</span>
 <span>  <span class="va">test</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">]</span>,</span>
@@ -194,13 +232,14 @@
 <span><span class="op">)</span></span>
 <span><span class="va">next_run</span><span class="op">$</span><span class="va">point</span></span>
 <span><span class="va">next_run</span><span class="op">$</span><span class="va">expected_improvement</span></span></code></pre></div>
-<p>For four components, the default search checks all 24 sequence permutations. When the complete set is larger than <code>max_sequences</code>, the function searches a reproducible sample instead. A specific set of permutations can be supplied through <code>sequences</code>. Quantitative inputs are optimized within the model’s stored prediction ranges, and completed experiments are excluded by default.</p>
+<p><code><a href="reference/magp_expected_improvement.html">magp_expected_improvement()</a></code> returns one score per candidate row. <code><a href="reference/magp_next_point.html">magp_next_point()</a></code> returns the selected row, its expected improvement, predicted mean, predicted standard error, and search diagnostics.</p>
+<p>For four components, <code><a href="reference/magp_next_point.html">magp_next_point()</a></code> checks all 24 sequence permutations by default. If the complete set is larger than <code>max_sequences</code>, it searches a sample instead. Supply <code>seed</code> to reproduce the same sample. Completed experiments are excluded by default.</p>
 </div>
-<div class="section level2">
-<h2 id="sequential-bayesian-optimization">Sequential Bayesian optimization<a class="anchor" aria-label="anchor" href="#sequential-bayesian-optimization"></a>
-</h2>
-<p><code><a href="reference/magp_bayes_optimize.html">magp_bayes_optimize()</a></code> fits a MaGP surrogate, finds the point with the largest expected improvement, evaluates the objective, and refits the model. The objective receives one named argument for every input column and may return a numeric value or a list containing <code>Score</code> or <code>Value</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="continue-from-completed-experiments">Continue from completed experiments<a class="anchor" aria-label="anchor" href="#continue-from-completed-experiments"></a>
+</h3>
+<p>The objective function receives one named argument for every input column. It must return one number, or a list containing one number named <code>Score</code> or <code>Value</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">objective</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">A</span>, <span class="va">B</span>, <span class="va">C</span>, <span class="va">D</span>, <span class="va">a</span>, <span class="va">b</span>, <span class="va">c</span>, <span class="va">d</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">quantities</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">A</span>, <span class="va">B</span>, <span class="va">C</span>, <span class="va">D</span><span class="op">)</span></span>
 <span>  <span class="va">sequence</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, <span class="va">c</span>, <span class="va">d</span><span class="op">)</span></span>
@@ -215,25 +254,26 @@
 <span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/magp_bayes_optimize.html">magp_bayes_optimize</a></span><span class="op">(</span></span>
-<span>  <span class="va">objective</span>,</span>
-<span>  <span class="va">initial_x</span>,</span>
-<span>  <span class="va">initial_y</span>,</span>
+<span>  FUN <span class="op">=</span> <span class="va">objective</span>,</span>
+<span>  X <span class="op">=</span> <span class="va">initial_x</span>,</span>
+<span>  y <span class="op">=</span> <span class="va">initial_y</span>,</span>
 <span>  direction <span class="op">=</span> <span class="st">"maximize"</span>,</span>
 <span>  n_iter <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  fit_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>n_starts <span class="op">=</span> <span class="fl">4</span>, workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
-<span>  acquisition_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>n_starts <span class="op">=</span> <span class="fl">5</span>, workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>  acquisition_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>n_starts <span class="op">=</span> <span class="fl">5</span>, workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">best_point</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">best_value</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">history</span></span></code></pre></div>
-<p><code>stop_ei</code> is an absolute expected-improvement threshold. The loop stops after <code>stop_patience</code> consecutive evaluated points at or below that value. The returned model always includes every evaluation recorded in <code>history</code>.</p>
+<p>Each iteration fits the model, selects a new point, evaluates <code>objective</code>, and adds the result to the data. The main outputs are <code>best_point</code>, <code>best_value</code>, <code>history</code>, the final <code>model</code>, and the complete <code>X</code> and <code>y</code>. Set <code>n_iter</code> to the maximum number of new evaluations. The loop may stop earlier when expected improvement remains at or below <code>stop_ei</code> for <code>stop_patience</code> consecutive iterations.</p>
 </div>
-<div class="section level2">
-<h2 id="starting-from-a-generated-design">Starting from a generated design<a class="anchor" aria-label="anchor" href="#starting-from-a-generated-design"></a>
-</h2>
-<p>When no experiments have been run yet, <code><a href="reference/magp_bayes_optimize_from_scratch.html">magp_bayes_optimize_from_scratch()</a></code> connects the complete workflow. It builds the quantitative-sequence initial design, evaluates the objective at those runs, and then continues with sequential expected-improvement search.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="start-without-initial-data">Start without initial data<a class="anchor" aria-label="anchor" href="#start-without-initial-data"></a>
+</h3>
+<p><code><a href="reference/magp_bayes_optimize_from_scratch.html">magp_bayes_optimize_from_scratch()</a></code> first creates an initial design and evaluates the objective at every row. It then starts the same sequential search used by <code><a href="reference/magp_bayes_optimize.html">magp_bayes_optimize()</a></code>.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">objective</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">quantity_1</span>, <span class="va">quantity_2</span>, <span class="va">quantity_3</span>,</span>
 <span>                      <span class="va">sequence_1</span>, <span class="va">sequence_2</span>, <span class="va">sequence_3</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">quantities</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">quantity_1</span>, <span class="va">quantity_2</span>, <span class="va">quantity_3</span><span class="op">)</span></span>
@@ -243,7 +283,7 @@
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/magp_bayes_optimize_from_scratch.html">magp_bayes_optimize_from_scratch</a></span><span class="op">(</span></span>
-<span>  <span class="va">objective</span>,</span>
+<span>  FUN <span class="op">=</span> <span class="va">objective</span>,</span>
 <span>  n_initial <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  q <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  direction <span class="op">=</span> <span class="st">"maximize"</span>,</span>
@@ -255,13 +295,15 @@
 <span>    alignment_maxit <span class="op">=</span> <span class="fl">500</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  fit_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>n_starts <span class="op">=</span> <span class="fl">4</span>, workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
-<span>  acquisition_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>n_starts <span class="op">=</span> <span class="fl">5</span>, workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>  acquisition_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>n_starts <span class="op">=</span> <span class="fl">5</span>, workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">initial_design</span><span class="op">$</span><span class="va">design</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">initial_response</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">best_point</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">history</span></span></code></pre></div>
-<p>Use <code>design_control</code> to change the simulated-annealing settings for the initial design. Use <code><a href="reference/magp_bayes_optimize.html">magp_bayes_optimize()</a></code> when initial experiments and responses are already available.</p>
+<p>The extra outputs <code>initial_design</code> and <code>initial_response</code> record the generated starting runs. Use <code>design_control</code>, <code>fit_control</code>, and <code>acquisition_control</code> only when the default search settings need to be changed. See the function help pages for the available settings and returned components.</p>
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

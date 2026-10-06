@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">magp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.12.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.12.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,46 +38,40 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.12.0.9000" id="magp-01209000">magp 0.12.0.9000<a class="anchor" aria-label="anchor" href="#magp-01209000"></a></h2>
-<ul><li>Added a pkgdown website with a getting-started guide, an optimization workflow, a reproducible covariance-engine benchmark, and a curated function reference.</li>
-<li>Added package-level citation metadata for both the software and the associated methodology paper.</li>
-<li>Added <code><a href="../reference/magp_bayes_optimize_from_scratch.html">magp_bayes_optimize_from_scratch()</a></code> to connect simulated-annealing initial design, initial objective evaluation, and sequential MaGP Bayesian optimization in one call.</li>
-<li>Added reproducible handling of stochastic objective functions while preserving the caller’s random-number state.</li>
-<li>Retained the complete initial design and its responses in the optimization result for review and reuse.</li>
-<li>Added early validation for design, fitting, acquisition, and objective controls before the initial-design search begins.</li>
+<h2 class="pkg-version" data-toc-text="0.12.0" id="magp-0120">magp 0.12.0<a class="anchor" aria-label="anchor" href="#magp-0120"></a></h2><p class="text-muted">CRAN release: 2026-09-24</p>
+<ul><li><p>Limited parallel fitting and acquisition searches to two worker processes.</p></li>
+<li><p>Added random and space-filling threshold-accepting options for the sequence portion of an initial design. The existing simulated-annealing method remains the default for backward compatibility.</p></li>
+<li><p>Added C++ incremental scoring for the threshold-accepting search, including bounded initialization, threshold calibration, best-result retention, and detailed diagnostics.</p></li>
+<li><p>Connected the new sequence choices to the full initial-design and from-scratch Bayesian-optimization workflows.</p></li>
+<li><p>Added examples and regression tests for method selection, input validation, reproducibility, finite permutation spaces, and quantitative-design preservation.</p></li>
+<li><p>Rewrote the Bayesian optimization help pages and examples to explain function choice, arguments, workflow steps, and returned objects more directly.</p></li>
+<li><p>Added a pkgdown website with a getting-started guide, an optimization workflow, a reproducible covariance-engine benchmark, and a curated function reference.</p></li>
+<li><p>Added package-level citation metadata for both the software and the associated methodology paper.</p></li>
+<li><p>Added <code><a href="../reference/magp_bayes_optimize_from_scratch.html">magp_bayes_optimize_from_scratch()</a></code> to connect simulated-annealing initial design, initial objective evaluation, and sequential MaGP Bayesian optimization in one call.</p></li>
+<li><p>Added reproducible handling of stochastic objective functions while preserving the caller’s random-number state.</p></li>
+<li><p>Included the complete initial design and its responses in the optimization result.</p></li>
+<li><p>Added early validation for design, fitting, acquisition, and objective controls before the initial-design search begins.</p></li>
+<li><p>Added expected improvement for both two-dimensional and full-mapping models.</p></li>
+<li><p>Added mixed acquisition search across quantitative bounds and sequence permutations, with multi-start and optional parallel execution.</p></li>
+<li><p>Added a sequential Bayesian optimization interface for expensive objective functions.</p></li>
+<li><p>Added deterministic sequence sampling for cases where complete permutation enumeration would be too large.</p></li>
+<li><p>Added duplicate-input protection, early stopping, complete search history, and final-model refitting.</p></li>
+<li><p>Added multi-start optimization to <code><a href="../reference/magp2d_fit.html">magp2d_fit()</a></code> and <code><a href="../reference/magpfull_fit.html">magpfull_fit()</a></code>.</p></li>
+<li><p>Added optional local parallel execution through portable socket clusters.</p></li>
+<li><p>Made seeded sequential and parallel fits use the same parameter starts.</p></li>
+<li><p>Added start-level objective values, convergence results, warnings, and errors to each fitted object.</p></li>
+<li><p>Completed the quantitative-sequence initial-design workflow.</p></li>
+<li><p>Added <code><a href="../reference/magp_quantitative_criterion.html">magp_quantitative_criterion()</a></code> and <code><a href="../reference/magp_quantitative_design.html">magp_quantitative_design()</a></code> for maximin-style Latin hypercubes.</p></li>
+<li><p>Added <code><a href="../reference/magp_joint_criterion.html">magp_joint_criterion()</a></code> to evaluate the combined separation of quantitative and sequence inputs.</p></li>
+<li><p>Added <code><a href="../reference/magp_initial_design.html">magp_initial_design()</a></code> to construct and align both design portions while preserving their individual structures.</p></li>
+<li><p>Added reproducible simulated-annealing searches and validation across several run sizes and component counts.</p></li>
+<li><p>Added tools for constructing the sequence portion of a quantitative-sequence initial design.</p></li>
+<li><p>Added <code><a href="../reference/magp_sequence_criterion.html">magp_sequence_criterion()</a></code> to assess pair balance and Hamming-distance space filling in a sequence design.</p></li>
+<li><p>Added <code><a href="../reference/magp_sequence_design.html">magp_sequence_design()</a></code> to optimize the sequence portion with reproducible simulated annealing.</p></li>
+<li><p>Added reproducible simulated-annealing search with configurable criterion weights and search settings.</p></li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.11.0.9000" id="magp-01109000">magp 0.11.0.9000<a class="anchor" aria-label="anchor" href="#magp-01109000"></a></h2>
-<ul><li>Added expected improvement for both two-dimensional and full-mapping models.</li>
-<li>Added mixed acquisition search across quantitative bounds and sequence permutations, with multi-start and optional parallel execution.</li>
-<li>Added a sequential Bayesian optimization interface for expensive objective functions.</li>
-<li>Added deterministic sequence sampling for cases where complete permutation enumeration would be too large.</li>
-<li>Added duplicate-input protection, early stopping, complete search history, and final-model refitting.</li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.10.0.9000" id="magp-01009000">magp 0.10.0.9000<a class="anchor" aria-label="anchor" href="#magp-01009000"></a></h2>
-<ul><li>Added multi-start optimization to <code><a href="../reference/magp2d_fit.html">magp2d_fit()</a></code> and <code><a href="../reference/magpfull_fit.html">magpfull_fit()</a></code>.</li>
-<li>Added optional local parallel execution through portable socket clusters.</li>
-<li>Made seeded sequential and parallel fits use the same parameter starts.</li>
-<li>Added start-level objective values, convergence results, warnings, and errors to each fitted object.</li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.9.0.9000" id="magp-0909000">magp 0.9.0.9000<a class="anchor" aria-label="anchor" href="#magp-0909000"></a></h2>
-<ul><li>Completed the quantitative-sequence initial-design workflow.</li>
-<li>Added <code><a href="../reference/magp_quantitative_criterion.html">magp_quantitative_criterion()</a></code> and <code><a href="../reference/magp_quantitative_design.html">magp_quantitative_design()</a></code> for maximin-style Latin hypercubes.</li>
-<li>Added <code><a href="../reference/magp_joint_criterion.html">magp_joint_criterion()</a></code> to evaluate the combined separation of quantitative and sequence inputs.</li>
-<li>Added <code><a href="../reference/magp_initial_design.html">magp_initial_design()</a></code> to construct and align both design portions while preserving their individual structures.</li>
-<li>Added reproducible simulated-annealing searches and validation across several run sizes and component counts.</li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.8.0.9000" id="magp-0809000">magp 0.8.0.9000<a class="anchor" aria-label="anchor" href="#magp-0809000"></a></h2>
-<ul><li>Added tools for constructing the sequence portion of a quantitative-sequence initial design.</li>
-<li>Added <code><a href="../reference/magp_sequence_criterion.html">magp_sequence_criterion()</a></code> to assess pair balance and Hamming-distance space filling in a sequence design.</li>
-<li>Added <code><a href="../reference/magp_sequence_design.html">magp_sequence_design()</a></code> to optimize the sequence portion with reproducible simulated annealing.</li>
-<li>Added reproducible simulated-annealing search with configurable criterion weights and search settings.</li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.8.0" id="magp-080">magp 0.8.0<a class="anchor" aria-label="anchor" href="#magp-080"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.8.0" id="magp-080">magp 0.8.0<a class="anchor" aria-label="anchor" href="#magp-080"></a></h2><p class="text-muted">CRAN release: 2026-09-03</p>
 <ul><li>Prepared the two-dimensional and full-mapping models for the first CRAN release.</li>
 <li>Added a consistent <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> interface, including plug-in predictive uncertainty, for both fitted model classes.</li>
 <li>Moved the main covariance, gradient, and cross-covariance calculations to C++ with <code>Rcpp</code>.</li>

@@ -20,14 +20,13 @@ Source:
 Wang T, Xiao Q (2026). *magp: Mapping-Based Additive Gaussian Process
 Models*.
 [doi:10.32614/CRAN.package.magp](https://doi.org/10.32614/CRAN.package.magp).
-R package version 0.12.0.9000,
-<https://CRAN.R-project.org/package=magp>.
+R package version 0.12.0, <https://CRAN.R-project.org/package=magp>.
 
     @Manual{,
       title = {magp: Mapping-Based Additive Gaussian Process Models},
       author = {Tony Wang and Qian Xiao},
       year = {2026},
-      note = {R package version 0.12.0.9000},
+      note = {R package version 0.12.0},
       doi = {10.32614/CRAN.package.magp},
       url = {https://CRAN.R-project.org/package=magp},
     }

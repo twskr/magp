@@ -36,13 +36,13 @@ Build and assess quantitative-sequence starting designs.
 Use expected improvement for sequential optimization.
 
 - [`magp_expected_improvement()`](https://twskr.github.io/magp/reference/magp_expected_improvement.md)
-  : Calculate expected improvement for a fitted MaGP model
+  : Score candidate experiments with expected improvement
 - [`magp_next_point()`](https://twskr.github.io/magp/reference/magp_next_point.md)
-  : Find the next quantitative-sequence experiment
+  : Select the next quantitative-sequence experiment
 - [`magp_bayes_optimize()`](https://twskr.github.io/magp/reference/magp_bayes_optimize.md)
-  : Run sequential Bayesian optimization with a MaGP surrogate
+  : Continue Bayesian optimization from completed experiments
 - [`magp_bayes_optimize_from_scratch()`](https://twskr.github.io/magp/reference/magp_bayes_optimize_from_scratch.md)
-  : Start Bayesian optimization from a generated initial design
+  : Start Bayesian optimization before any experiments have been run
 
 ## Object summaries
 

@@ -84,7 +84,7 @@ magp2d_fit(
 - workers:
 
   Number of local worker processes. Values greater than one use a socket
-  cluster and are capped at `n_starts`.
+  cluster and are capped at two or `n_starts`, whichever is lower.
 
 ## Value
 

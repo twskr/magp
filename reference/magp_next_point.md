@@ -1,8 +1,7 @@
-# Find the next quantitative-sequence experiment
+# Select the next quantitative-sequence experiment
 
-Maximizes expected improvement over quantitative inputs and sequence
-permutations. Each sequence is searched from several quantitative
-starting points, and the best result across all searches is returned.
+Searches the allowed quantitative values and sequence permutations, then
+returns the unobserved point with the largest expected improvement.
 
 ## Usage
 
@@ -35,22 +34,23 @@ magp_next_point(
 
 - direction:
 
-  Whether the objective is being minimized or maximized.
+  Use `"minimize"` when smaller responses are better and `"maximize"`
+  when larger responses are better.
 
 - xi:
 
-  A nonnegative exploration offset used by expected improvement.
+  Nonnegative improvement offset used in expected improvement.
 
 - best:
 
-  Optional finite reference value. The current observed optimum is used
-  when omitted.
+  Optional response that a new point should improve upon. When it is
+  omitted, the function uses the best observed response in `object`.
 
 - lower, upper:
 
-  Optional quantitative bounds. Each may contain one value or `q`
-  values. Defaults are `[0, 1]` for inputs fitted on that scale and the
-  stored training range for inputs that were scaled during fitting.
+  Optional lower and upper bounds for the quantitative inputs. Supply
+  one value for all components or one value per component. The defaults
+  use the prediction ranges stored in the fitted model.
 
 - sequences:
 
@@ -60,32 +60,33 @@ magp_next_point(
 
 - max_sequences:
 
-  Maximum number of automatically generated sequence candidates.
+  Largest number of sequence candidates generated when `sequences` is
+  not supplied.
 
 - n_starts:
 
-  Number of quantitative starting points used for each sequence. The
-  first is the midpoint of the bounds and the rest are random.
+  Number of quantitative starting points searched for each sequence
+  candidate.
 
 - workers:
 
-  Number of local worker processes. Values greater than one use a
-  portable socket cluster and are capped at the number of search tasks.
+  Number of local worker processes. Use `1` for sequential execution. At
+  most two processes are used.
 
 - maxit:
 
-  Maximum number of `L-BFGS-B` iterations for each start.
+  Maximum optimization iterations for each quantitative start.
 
 - factr, pgtol:
 
-  Convergence controls passed to
+  Advanced convergence settings passed to
   [`stats::optim()`](https://rdrr.io/r/stats/optim.html) for its
-  `L-BFGS-B` method.
+  `"L-BFGS-B"` method.
 
 - exclude_observed:
 
-  Logical; if `TRUE`, previously observed inputs are not eligible for
-  selection.
+  If `TRUE`, do not return an input that is already in the training
+  data.
 
 - duplicate_tolerance:
 
@@ -99,10 +100,44 @@ magp_next_point(
 
 ## Value
 
-An object of class `magp_next_point`. Its `point` component is a one-row
-data frame ready for evaluation. The object also contains expected
-improvement, predictive mean and standard error, the searched sequences,
-and start-level diagnostics.
+An object of class `magp_next_point` containing the selected point, its
+prediction, and search diagnostics.
+
+## Sequence search
+
+If `sequences` is supplied, only those rows are searched. Otherwise, the
+function searches every permutation when there are no more than
+`max_sequences`. For a larger sequence space, it searches a reproducible
+sample of `max_sequences` permutations when `seed` is supplied.
+
+## Reading the result
+
+The returned object contains:
+
+- `call`: the function call;
+
+- `point`: the selected input as a one-row data frame;
+
+- `expected_improvement`: the score of the selected point;
+
+- `predicted_mean` and `predicted_standard_error`: the MaGP prediction;
+
+- `direction`, `best_observed`, and `xi`: the expected-improvement
+  settings;
+
+- `bounds`: the quantitative lower and upper bounds;
+
+- `sequences` and `sequence_source`: the permutations searched and how
+  they were obtained;
+
+- `selected_sequence` and `selected_start`: the winning search indices;
+
+- `n_starts`: the number of quantitative starts per sequence;
+
+- `workers_requested`, `workers_used`, and `execution`: the
+  parallel-search settings actually used; and
+
+- `diagnostics`: the result of every sequence and starting-point search.
 
 ## Examples
 
@@ -123,5 +158,7 @@ next_run <- magp_next_point(
 next_run$point
 #>          A       B         C         D a b c d
 #> 1 0.678576 0.98949 0.5597923 0.5015999 1 4 3 2
+next_run$expected_improvement
+#> [1] 7.521459
 # }
 ```

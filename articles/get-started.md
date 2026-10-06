@@ -58,8 +58,9 @@ fit
 #>   optimizer: converged (status 4 )
 ```
 
-For a more robust search, set `n_starts` above one. Setting `workers`
-above one runs those starts in separate local R processes.
+To fit the model from multiple parameter starts, set `n_starts` above
+one. Setting `workers` above one runs those starts in separate local R
+processes.
 
 ``` r
 
@@ -67,7 +68,7 @@ fit <- magp2d_fit(
   train,
   seed = 1,
   n_starts = 8,
-  workers = 4
+  workers = 2
 )
 ```
 
@@ -147,7 +148,7 @@ citation("magp")
 #>   Wang T, Xiao Q (2026). _magp: Mapping-Based Additive Gaussian Process
 #>   Models_. doi:10.32614/CRAN.package.magp
 #>   <https://doi.org/10.32614/CRAN.package.magp>. R package version
-#>   0.12.0.9000, <https://CRAN.R-project.org/package=magp>.
+#>   0.12.0, <https://CRAN.R-project.org/package=magp>.
 #> 
 #>   Xiao Q, Wang Y, Mandal A, Deng X (2024). "Modeling and Active
 #>   Learning for Experiments with Quantitative-Sequence Factors."

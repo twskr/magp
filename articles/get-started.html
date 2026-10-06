@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">magp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.12.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.12.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -119,15 +119,15 @@ identify it and infer <code>q</code> directly.</p>
 <span><span class="co">#&gt;   fitted mean: 15.7967 </span></span>
 <span><span class="co">#&gt;   objective: 235.4236 </span></span>
 <span><span class="co">#&gt;   optimizer: converged (status 4 )</span></span></code></pre></div>
-<p>For a more robust search, set <code>n_starts</code> above one.
-Setting <code>workers</code> above one runs those starts in separate
-local R processes.</p>
+<p>To fit the model from multiple parameter starts, set
+<code>n_starts</code> above one. Setting <code>workers</code> above one
+runs those starts in separate local R processes.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/magp2d_fit.html">magp2d_fit</a></span><span class="op">(</span></span>
 <span>  <span class="va">train</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  n_starts <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  workers <span class="op">=</span> <span class="fl">4</span></span>
+<span>  workers <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -196,7 +196,7 @@ associated methodology paper.</p>
 <span><span class="co">#&gt;   Wang T, Xiao Q (2026). _magp: Mapping-Based Additive Gaussian Process</span></span>
 <span><span class="co">#&gt;   Models_. doi:10.32614/CRAN.package.magp</span></span>
 <span><span class="co">#&gt;   &lt;https://doi.org/10.32614/CRAN.package.magp&gt;. R package version</span></span>
-<span><span class="co">#&gt;   0.12.0.9000, &lt;https://CRAN.R-project.org/package=magp&gt;.</span></span>
+<span><span class="co">#&gt;   0.12.0, &lt;https://CRAN.R-project.org/package=magp&gt;.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   Xiao Q, Wang Y, Mandal A, Deng X (2024). "Modeling and Active</span></span>
 <span><span class="co">#&gt;   Learning for Experiments with Quantitative-Sequence Factors."</span></span>

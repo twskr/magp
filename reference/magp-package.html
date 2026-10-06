@@ -9,7 +9,7 @@ component has both a quantitative level and a position in a sequence."></head><b
 
     <a class="navbar-brand me-2" href="../index.html">magp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.12.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.12.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,8 +59,9 @@ uncertainty. The computational kernels for covariance matrices, analytical
 gradients, and cross-covariances are implemented in C++ with <code>Rcpp</code>.</p>
 <p><code><a href="magp_initial_design.html">magp_initial_design()</a></code> constructs a space-filling quantitative-sequence
 design before responses are collected. It combines a Latin hypercube with
-balanced sequence permutations and preserves both structures during their
-joint alignment.</p>
+sequence permutations generated randomly or improved with simulated
+annealing or space-filling threshold accepting. Joint alignment preserves
+both component designs.</p>
 <p><code><a href="magp_expected_improvement.html">magp_expected_improvement()</a></code> evaluates improvement using latent predictive
 uncertainty. <code><a href="magp_next_point.html">magp_next_point()</a></code> searches quantitative bounds and sequence
 permutations for the next experiment, while <code><a href="magp_bayes_optimize.html">magp_bayes_optimize()</a></code> runs

@@ -22,8 +22,9 @@ cross-covariances are implemented in C++ with `Rcpp`.
 
 [`magp_initial_design()`](https://twskr.github.io/magp/reference/magp_initial_design.md)
 constructs a space-filling quantitative-sequence design before responses
-are collected. It combines a Latin hypercube with balanced sequence
-permutations and preserves both structures during their joint alignment.
+are collected. It combines a Latin hypercube with sequence permutations
+generated randomly or improved with simulated annealing or space-filling
+threshold accepting. Joint alignment preserves both component designs.
 
 [`magp_expected_improvement()`](https://twskr.github.io/magp/reference/magp_expected_improvement.md)
 evaluates improvement using latent predictive uncertainty.
